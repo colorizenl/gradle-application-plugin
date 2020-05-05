@@ -1,0 +1,4 @@
+[submodule "appbundler"]
+	path = appbundler
+	url = https://github.com/TheInfiniteKind/appbundler
+	branch = master

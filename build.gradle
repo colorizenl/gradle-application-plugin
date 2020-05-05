@@ -1,0 +1,74 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    
+    dependencies {
+        classpath "com.gradle.publish:plugin-publish-plugin:0.11.0"
+    }
+}
+
+apply plugin: "java-gradle-plugin"
+apply plugin: "com.gradle.plugin-publish"
+apply plugin: "jacoco"
+
+group = "nl.colorize"
+version = "2020.2"
+sourceCompatibility = "11"
+targetCompatibility = "11"
+compileJava.options.encoding = "UTF-8"
+sourceSets.main.java.srcDirs = ["source"]
+sourceSets.main.resources.srcDirs = ["resources"]
+sourceSets.test.java.srcDirs = ["test"]
+jar.archiveName = "mac-application-bundle-plugin-${version}.jar"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation files("lib/appbundler.jar")
+    testImplementation "org.junit.jupiter:junit-jupiter:5.6.2"
+}
+
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+gradlePlugin {
+    plugins {
+        macApplicationBundlePlugin {
+            id = "nl.colorize.gradle.macapplicationbundle"
+            implementationClass = "nl.colorize.gradle.macapplicationbundle.ApplicationBundlePlugin"
+        }
+    }
+}
+
+pluginBundle {
+    website = "http://www.colorize.nl/en/"
+    vcsUrl = "https://github.com/colorizenl/gradle-mac-application-bundle-plugin"
+    description = "Gradle plugin to create Mac application bundle."
+    tags = ["mac", "macos", "application bundle"]
+    
+    plugins {
+        macApplicationBundlePlugin {
+            id = "nl.colorize.gradle.macapplicationbundle"
+            displayName = "Gradle plugin to create Mac application bundle."
+        }
+    }
+    
+    mavenCoordinates {
+        groupId = "nl.colorize"
+        artifactId = "mac-application-bundle-plugin"
+    }
+}
