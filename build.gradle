@@ -37,7 +37,9 @@ dependencies {
 
 jar {
     from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath
+            .filter { it.toString().endsWith("appbundler.jar") }
+            .collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
