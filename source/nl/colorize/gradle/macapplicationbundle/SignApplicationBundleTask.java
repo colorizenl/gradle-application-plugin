@@ -9,7 +9,6 @@ package nl.colorize.gradle.macapplicationbundle;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.impldep.com.google.api.client.repackaged.com.google.common.base.Joiner;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +78,6 @@ public class SignApplicationBundleTask extends DefaultTask {
 
     private void exec(String... command) {
         List<String> args = List.of(command);
-        System.out.println(Joiner.on(" ").join(args));
         getProject().exec(exec -> exec.commandLine(args));
     }
 
