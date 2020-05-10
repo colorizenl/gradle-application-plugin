@@ -15,7 +15,7 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2020.2"
+version = "2020.6"
 sourceCompatibility = "11"
 targetCompatibility = "11"
 compileJava.options.encoding = "UTF-8"
@@ -72,5 +72,12 @@ pluginBundle {
     mavenCoordinates {
         groupId = "nl.colorize"
         artifactId = "mac-application-bundle-plugin"
+    }
+}
+
+task checkSigningIdentity() {
+    doLast {
+        println project.property("macApplicationBundle.identity.app")
+        println project.property("macApplicationBundle.identity.installer")
     }
 }

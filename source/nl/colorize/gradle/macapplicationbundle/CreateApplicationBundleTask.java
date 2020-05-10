@@ -32,11 +32,11 @@ public class CreateApplicationBundleTask extends DefaultTask {
         AppBundlerTask task = new AppBundlerTask();
         task.setProject(createAntProject());
 
-        task.setOutputDirectory(new File(get("outputDir", config.getOutputDir())));
+        task.setOutputDirectory(prepareOutputDir(config));
         task.setName(get("name", config.getName()));
         task.setDisplayName(getDisplayName(config));
         task.setIdentifier(get("identifier", config.getIdentifier()));
-        task.setDescription(get("description", config.getDescription()));
+        task.setDescription(get("description", config.getDescription(), getDisplayName(config)));
         task.setVersion(getVersion(config));
         task.setShortVersion(getShortVersion(config));
         task.setCopyright(get("copyright", config.getCopyright()));
@@ -54,6 +54,20 @@ public class CreateApplicationBundleTask extends DefaultTask {
         task.addConfiguredJLink(createJLink(config));
 
         task.perform();
+    }
+
+    private File prepareOutputDir(MacApplicationBundleExt config) {
+        File outputDir = new File(get("outputDir", config.getOutputDir()));
+
+        if (outputDir.getParentFile() != null && !outputDir.getParentFile().exists()) {
+            throw new IllegalArgumentException("Invalid output directory");
+        }
+
+        if (!outputDir.exists()) {
+            outputDir.mkdir();
+        }
+
+        return outputDir;
     }
 
     private Project createAntProject() {

@@ -6,7 +6,9 @@
 
 package nl.colorize.gradle.macapplicationbundle;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MacApplicationBundleExt {
@@ -28,6 +30,9 @@ public class MacApplicationBundleExt {
     private String mainClassName;
     private List<String> modules;
 
+    private String signIdentityApp;
+    private String signIdentityInstaller;
+
     public MacApplicationBundleExt() {
         initDefaults();
     }
@@ -35,6 +40,9 @@ public class MacApplicationBundleExt {
     private void initDefaults() {
         outputDir = "build/mac";
         icon = "resources/icon.icns";
+        description = "";
+        copyright = "Copyright " + new SimpleDateFormat("yyyy").format(new Date());
+        version = "1.0";
         applicationCategory = "public.app-category.developer-tools";
         minimumSystemVersion = "10.13";
 
@@ -154,5 +162,21 @@ public class MacApplicationBundleExt {
 
     public void setModules(List<String> modules) {
         this.modules = modules;
+    }
+
+    public String getSignIdentityApp() {
+        return signIdentityApp;
+    }
+
+    public void setSignIdentityApp(String signIdentityApp) {
+        this.signIdentityApp = signIdentityApp;
+    }
+
+    public String getSignIdentityInstaller() {
+        return signIdentityInstaller;
+    }
+
+    public void setSignIdentityInstaller(String signIdentityInstaller) {
+        this.signIdentityInstaller = signIdentityInstaller;
     }
 }

@@ -21,6 +21,9 @@ public class ApplicationBundlePlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
         tasks.create("createApplicationBundle", CreateApplicationBundleTask.class);
+        tasks.create("signApplicationBundle", SignApplicationBundleTask.class);
+
+        tasks.getByName("signApplicationBundle").dependsOn(tasks.getByName("createApplicationBundle"));
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
             tasks.getByName("createApplicationBundle").dependsOn(tasks.getByName("jar"));
