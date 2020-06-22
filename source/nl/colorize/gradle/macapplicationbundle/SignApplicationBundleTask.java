@@ -42,26 +42,35 @@ public class SignApplicationBundleTask extends DefaultTask {
                 appFile.getAbsolutePath());
         }
 
-        File embeddedJRE = new File(appFile.getAbsolutePath() + "/Contents/PlugIns/adoptopenjdk-11.jdk");
+        File pluginsDir = new File(appFile.getAbsolutePath() + "/Contents/PlugIns");
+        File embeddedJRE = new File(pluginsDir, "adoptopenjdk-11.jdk");
         File jreEntitlements = generateEntitlements(ENTITLEMENTS_JRE);
 
         Files.walk(appFile.toPath())
             .map(Path::toFile)
-            .filter(file -> file.getName().endsWith(".dylib") || file.getName().equals("jspawnhelper"))
+            .filter(this::shouldSignFile)
             .forEach(bin -> sign(config, bin, jreEntitlements));
+
+        if (config.isSignPlugins()) {
+            Files.walk(pluginsDir.toPath(), 1)
+                .map(Path::toFile)
+                .filter(file -> !file.equals(pluginsDir) && !file.equals(embeddedJRE))
+                .forEach(plugin -> sign(config, plugin, jreEntitlements));
+        }
 
         sign(config, embeddedJRE, jreEntitlements);
         sign(config, appFile, generateEntitlements(ENTITLEMENTS_APP));
         createInstallerPackage(config, appFile);
     }
 
+    private boolean shouldSignFile(File file) {
+        return file.getName().endsWith(".dylib") || file.getName().equals("jspawnhelper");
+    }
+
     private void sign(MacApplicationBundleExt config, File target, File entitlements) {
         String identity = getAppSignIdentity(config);
 
-        exec("codesign",
-            "-s", identity,
-            "-vvvv",
-            "--force",
+        exec("codesign", "-s", identity, "-vvvv", "--force",
             "--entitlements", entitlements.getAbsolutePath(),
             target.getAbsolutePath());
     }
@@ -70,9 +79,7 @@ public class SignApplicationBundleTask extends DefaultTask {
         File pkgFile = new File(config.getOutputDir() + "/" + config.getName() + ".pkg");
         String identity = getInstallerSignIdentity(config);
 
-        exec("productbuild",
-            "--component", appFile.getAbsolutePath(),
-            "/Applications",
+        exec("productbuild", "--component", appFile.getAbsolutePath(), "/Applications",
             "--sign", identity, pkgFile.getAbsolutePath());
     }
 

@@ -18,6 +18,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
+import java.util.List;
 
 public class CreateApplicationBundleTask extends DefaultTask {
 
@@ -29,10 +30,26 @@ public class CreateApplicationBundleTask extends DefaultTask {
     }
 
     protected void run(MacApplicationBundleExt config) {
+        File outputDir = prepareOutputDir(config);
+        File appBundle = new File(outputDir, config.getName() + ".app");
+
+        createApplicationBundle(config, outputDir);
+
+        if (!appBundle.exists()) {
+            throw new IllegalStateException("Application bundle not found at " +
+                appBundle.getAbsolutePath());
+        }
+
+        if (config.getPluginDirs() != null) {
+            embedPlugins(config.getPluginDirs(), appBundle);
+        }
+    }
+
+    private void createApplicationBundle(MacApplicationBundleExt config, File outputDir) {
         AppBundlerTask task = new AppBundlerTask();
         task.setProject(createAntProject());
 
-        task.setOutputDirectory(prepareOutputDir(config));
+        task.setOutputDirectory(outputDir);
         task.setName(get("name", config.getName()));
         task.setDisplayName(getDisplayName(config));
         task.setIdentifier(get("identifier", config.getIdentifier()));
@@ -54,6 +71,20 @@ public class CreateApplicationBundleTask extends DefaultTask {
         task.addConfiguredJLink(createJLink(config));
 
         task.perform();
+    }
+
+    private void embedPlugins(List<String> pluginDirs, File appBundle) {
+        File outputDir = new File(appBundle.getAbsolutePath() + "/Contents/PlugIns");
+
+        for (String pluginDir : pluginDirs) {
+            File source = new File(pluginDir);
+            File target = new File(outputDir, source.getName());
+
+            getProject().copy(copy -> {
+                copy.from(source.getAbsolutePath());
+                copy.into(target.getAbsolutePath());
+            });
+        }
     }
 
     private File prepareOutputDir(MacApplicationBundleExt config) {
@@ -78,9 +109,17 @@ public class CreateApplicationBundleTask extends DefaultTask {
 
     private FileSet createClassPath(MacApplicationBundleExt config) {
         FileSet classPath = new FileSet();
-        classPath.setDir(new File(config.getContentDir()));
+        classPath.setDir(getContentDir(config));
         classPath.setIncludes("*.jar");
         return classPath;
+    }
+
+    private File getContentDir(MacApplicationBundleExt config) {
+        if (config.getContentDir() == null) {
+            return (File) getProject().getProperties().get("libsDir");
+        } else {
+            return new File(config.getContentDir());
+        }
     }
 
     private Option createOption(String value) {
@@ -135,7 +174,7 @@ public class CreateApplicationBundleTask extends DefaultTask {
     }
 
     private String getVersion(MacApplicationBundleExt config) {
-        return get("version", config.getVersion());
+        return get("version", config.getAppVersion());
     }
 
     private String getShortVersion(MacApplicationBundleExt config) {

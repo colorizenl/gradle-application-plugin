@@ -18,7 +18,7 @@ public class MacApplicationBundleExt {
     private String displayName;
     private String identifier;
     private String description;
-    private String version;
+    private String appVersion;
     private String shortVersion;
     private String copyright;
 
@@ -29,9 +29,11 @@ public class MacApplicationBundleExt {
     private String contentDir;
     private String mainClassName;
     private List<String> modules;
+    private List<String> pluginDirs;
 
     private String signIdentityApp;
     private String signIdentityInstaller;
+    private boolean signPlugins;
 
     public MacApplicationBundleExt() {
         initDefaults();
@@ -42,7 +44,7 @@ public class MacApplicationBundleExt {
         icon = "resources/icon.icns";
         description = "";
         copyright = "Copyright " + new SimpleDateFormat("yyyy").format(new Date());
-        version = "1.0";
+        appVersion = "1.0";
         applicationCategory = "public.app-category.developer-tools";
         minimumSystemVersion = "10.13";
 
@@ -50,6 +52,10 @@ public class MacApplicationBundleExt {
         modules.add("java.base");
         modules.add("java.logging");
         modules.add("java.desktop");
+        modules.add("java.net.http");
+
+        pluginDirs = new ArrayList<>();
+        signPlugins = true;
     }
 
     public String getOutputDir() {
@@ -92,12 +98,12 @@ public class MacApplicationBundleExt {
         this.description = description;
     }
 
-    public String getVersion() {
-        return version;
+    public String getAppVersion() {
+        return appVersion;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
     }
 
     public String getShortVersion() {
@@ -164,6 +170,14 @@ public class MacApplicationBundleExt {
         this.modules = modules;
     }
 
+    public List<String> getPluginDirs() {
+        return pluginDirs;
+    }
+
+    public void setPluginDirs(List<String> pluginDirs) {
+        this.pluginDirs = pluginDirs;
+    }
+
     public String getSignIdentityApp() {
         return signIdentityApp;
     }
@@ -178,5 +192,13 @@ public class MacApplicationBundleExt {
 
     public void setSignIdentityInstaller(String signIdentityInstaller) {
         this.signIdentityInstaller = signIdentityInstaller;
+    }
+
+    public boolean isSignPlugins() {
+        return signPlugins;
+    }
+
+    public void setSignPlugins(boolean signPlugins) {
+        this.signPlugins = signPlugins;
     }
 }

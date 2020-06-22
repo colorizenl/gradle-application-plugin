@@ -9,7 +9,6 @@ package nl.colorize.gradle.macapplicationbundle;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.TaskContainer;
 
 public class ApplicationBundlePlugin implements Plugin<Project> {
@@ -22,11 +21,9 @@ public class ApplicationBundlePlugin implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
         tasks.create("createApplicationBundle", CreateApplicationBundleTask.class);
         tasks.create("signApplicationBundle", SignApplicationBundleTask.class);
+        tasks.create("createICNS", CreateICNSTask.class);
 
         tasks.getByName("signApplicationBundle").dependsOn(tasks.getByName("createApplicationBundle"));
-
-        if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            tasks.getByName("createApplicationBundle").dependsOn(tasks.getByName("jar"));
-        }
+        tasks.getByName("createApplicationBundle").dependsOn("jar");
     }
 }
