@@ -15,7 +15,7 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2020.6.10"
+version = "2020.6.13"
 sourceCompatibility = "11"
 targetCompatibility = "11"
 compileJava.options.encoding = "UTF-8"

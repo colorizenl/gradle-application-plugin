@@ -1,8 +1,8 @@
 Mac application bundle plugin for Gradle
 ========================================
 
-Gradle plugin that can be used to create an
-[application bundle](https://en.wikipedia.org/wiki/Bundle_(macOS) for Mac OS as part of the build. 
+Gradle plugin that can be used to create a Mac OS
+[application bundle](https://en.wikipedia.org/wiki/Bundle_%28macOS%29) as part of the build. 
 This plugin is based on the [Ant plugin by TheInfiniteKind](https://github.com/TheInfiniteKind/appbundler), 
 but makes it available via Gradle. It also adds the ability to sign the application bundle and
 package it within an installer.
@@ -14,7 +14,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 plugin to the build is done by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.macapplicationbundle" version "2020.6.10"
+        id "nl.colorize.gradle.macapplicationbundle" version "2020.6.13"
     }
     
 The plugin can be configured using the `macApplicationBundle` block. The configuration
@@ -26,7 +26,7 @@ The following shows an example on how to define this configuration in Gradle:
         identifier = "com.example"
         description = "A description for your application"
         copyright = "Copyright 2020"
-        appVersion = "1.0"
+        bundleVersion = "1.0"
         icon = "resources/icon.icns"
         applicationCategory = "public.app-category.developer-tools"
         mainClassName = "com.example.app.Main"
@@ -70,7 +70,7 @@ Build instructions
 
 Building the plugin itself can only be done on Mac OS. It also requires the following:
 
-- [Java JDK](http://java.oracle.com) 8 or 11+
+- [Java JDK](http://java.oracle.com) 11+
 - [Gradle](http://gradle.org)
 - [Ant](https://ant.apache.org)
 
@@ -80,19 +80,21 @@ The following Gradle build tasks are available:
 - `gradle assemble` creates the JAR file for distribution
 - `gradle test` runs all unit tests
 - `gradle coverage` runs all unit tests and reports on test coverage
-
-Testing the plugin
-------------------
-
-The plugin includes an empty example application so that it is able to build itself. To perform
-this test, first build the plugin itself using `gradle assemble`. Afterwards, the example can
-be built using `gradle -b example.gradle createApplicationBundle`.
+- `gradle publishPlugins` publishes the plugin to the Gradle plugin portal (requires account)
   
 License
 -------
 
 Copyright 2010-2020 Colorize
 
-The source code is licensed under the Apache License. Refer to
-[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0) for
-the full license text.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.

@@ -64,9 +64,11 @@ public class CreateApplicationBundleTask extends DefaultTask {
 
         task.addConfiguredClassPath(createClassPath(config));
 
-        task.addConfiguredOption(createOption("-Xmx2g"));
         task.addConfiguredOption(createOption("-Xdock:name='" + getDisplayName(config) + "'"));
         task.addConfiguredOption(createOption("-Xdock:icon='Contents/Resources/icon.icns'"));
+        for (String option : config.getOptions()) {
+            task.addConfiguredOption(createOption(option));
+        }
 
         task.addConfiguredJLink(createJLink(config));
 
@@ -174,7 +176,7 @@ public class CreateApplicationBundleTask extends DefaultTask {
     }
 
     private String getVersion(MacApplicationBundleExt config) {
-        return get("version", config.getAppVersion());
+        return get("version", config.getBundleVersion());
     }
 
     private String getShortVersion(MacApplicationBundleExt config) {

@@ -18,7 +18,7 @@ public class MacApplicationBundleExt {
     private String displayName;
     private String identifier;
     private String description;
-    private String appVersion;
+    private String bundleVersion;
     private String shortVersion;
     private String copyright;
 
@@ -29,11 +29,13 @@ public class MacApplicationBundleExt {
     private String contentDir;
     private String mainClassName;
     private List<String> modules;
+    private List<String> options;
+
     private List<String> pluginDirs;
+    private boolean signPlugins;
 
     private String signIdentityApp;
     private String signIdentityInstaller;
-    private boolean signPlugins;
 
     public MacApplicationBundleExt() {
         initDefaults();
@@ -44,7 +46,7 @@ public class MacApplicationBundleExt {
         icon = "resources/icon.icns";
         description = "";
         copyright = "Copyright " + new SimpleDateFormat("yyyy").format(new Date());
-        appVersion = "1.0";
+        bundleVersion = "1.0";
         applicationCategory = "public.app-category.developer-tools";
         minimumSystemVersion = "10.13";
 
@@ -53,6 +55,10 @@ public class MacApplicationBundleExt {
         modules.add("java.logging");
         modules.add("java.desktop");
         modules.add("java.net.http");
+
+        options = new ArrayList<>();
+        options.add("-Xmx2g");
+        options.add("-XstartOnFirstThread");
 
         pluginDirs = new ArrayList<>();
         signPlugins = true;
@@ -98,12 +104,12 @@ public class MacApplicationBundleExt {
         this.description = description;
     }
 
-    public String getAppVersion() {
-        return appVersion;
+    public String getBundleVersion() {
+        return bundleVersion;
     }
 
-    public void setAppVersion(String appVersion) {
-        this.appVersion = appVersion;
+    public void setBundleVersion(String bundleVersion) {
+        this.bundleVersion = bundleVersion;
     }
 
     public String getShortVersion() {
@@ -170,12 +176,28 @@ public class MacApplicationBundleExt {
         this.modules = modules;
     }
 
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<String> options) {
+        this.options = options;
+    }
+
     public List<String> getPluginDirs() {
         return pluginDirs;
     }
 
     public void setPluginDirs(List<String> pluginDirs) {
         this.pluginDirs = pluginDirs;
+    }
+
+    public boolean isSignPlugins() {
+        return signPlugins;
+    }
+
+    public void setSignPlugins(boolean signPlugins) {
+        this.signPlugins = signPlugins;
     }
 
     public String getSignIdentityApp() {
@@ -192,13 +214,5 @@ public class MacApplicationBundleExt {
 
     public void setSignIdentityInstaller(String signIdentityInstaller) {
         this.signIdentityInstaller = signIdentityInstaller;
-    }
-
-    public boolean isSignPlugins() {
-        return signPlugins;
-    }
-
-    public void setSignPlugins(boolean signPlugins) {
-        this.signPlugins = signPlugins;
     }
 }
