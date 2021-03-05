@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Mac Application Bundle Plugin
-// Copyright 2010-2020 Colorize
+// Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 

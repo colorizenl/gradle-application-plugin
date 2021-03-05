@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Mac Application Bundle Plugin
-// Copyright 2010-2020 Colorize
+// Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ public class MacApplicationBundleExt {
     private String mainClassName;
     private List<String> modules;
     private List<String> options;
+    private boolean startOnFirstThread;
 
     private List<String> pluginDirs;
     private boolean signPlugins;
@@ -55,10 +56,11 @@ public class MacApplicationBundleExt {
         modules.add("java.logging");
         modules.add("java.desktop");
         modules.add("java.net.http");
+        modules.add("jdk.crypto.ec");
 
         options = new ArrayList<>();
         options.add("-Xmx2g");
-        options.add("-XstartOnFirstThread");
+        startOnFirstThread = false;
 
         pluginDirs = new ArrayList<>();
         signPlugins = true;
@@ -110,14 +112,6 @@ public class MacApplicationBundleExt {
 
     public void setBundleVersion(String bundleVersion) {
         this.bundleVersion = bundleVersion;
-    }
-
-    public String getShortVersion() {
-        return shortVersion;
-    }
-
-    public void setShortVersion(String shortVersion) {
-        this.shortVersion = shortVersion;
     }
 
     public String getCopyright() {
@@ -182,6 +176,14 @@ public class MacApplicationBundleExt {
 
     public void setOptions(List<String> options) {
         this.options = options;
+    }
+
+    public boolean isStartOnFirstThread() {
+        return startOnFirstThread;
+    }
+
+    public void setStartOnFirstThread(boolean startOnFirstThread) {
+        this.startOnFirstThread = startOnFirstThread;
     }
 
     public List<String> getPluginDirs() {

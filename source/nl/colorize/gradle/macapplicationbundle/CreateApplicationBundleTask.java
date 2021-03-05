@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Mac Application Bundle Plugin
-// Copyright 2010-2020 Colorize
+// Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -68,6 +68,9 @@ public class CreateApplicationBundleTask extends DefaultTask {
         task.addConfiguredOption(createOption("-Xdock:icon='Contents/Resources/icon.icns'"));
         for (String option : config.getOptions()) {
             task.addConfiguredOption(createOption(option));
+        }
+        if (config.isStartOnFirstThread()) {
+            task.addConfiguredOption(createOption("-XstartOnFirstThread"));
         }
 
         task.addConfiguredJLink(createJLink(config));
@@ -176,21 +179,19 @@ public class CreateApplicationBundleTask extends DefaultTask {
     }
 
     private String getVersion(MacApplicationBundleExt config) {
-        return get("version", config.getBundleVersion());
+        if (System.getProperty("buildversion") != null) {
+            return System.getProperty("buildversion");
+        } else {
+            return get("bundleVersion", config.getBundleVersion());
+        }
     }
 
     private String getShortVersion(MacApplicationBundleExt config) {
-        String shortVersion = System.getProperty("shortversion");
-        if (shortVersion == null) {
-            shortVersion = System.getProperty("buildversion");
+        if (System.getProperty("shortversion") != null) {
+            return System.getProperty("shortversion");
+        } else {
+            return get("bundleVersion", config.getBundleVersion());
         }
-        if (shortVersion == null) {
-            shortVersion = config.getShortVersion();
-        }
-        if (shortVersion == null) {
-            shortVersion = getVersion(config);
-        }
-        return shortVersion;
     }
 
     private String getJavaHome() {

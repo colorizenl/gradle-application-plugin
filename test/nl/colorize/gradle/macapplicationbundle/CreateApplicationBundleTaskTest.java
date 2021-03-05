@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Mac Application Bundle Plugin
-// Copyright 2010-2020 Colorize
+// Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -31,10 +31,10 @@ class CreateApplicationBundleTaskTest {
         config.setName("Example");
         config.setIdentifier("com.example");
         config.setDescription("A description for your application");
-        config.setCopyright("Copyright 2020");
+        config.setCopyright("Copyright 2021");
         config.setMainClassName("HelloWorld.Main");
         config.setContentDir("resources");
-        config.setAppVersion("1.0");
+        config.setBundleVersion("1.0");
 
         CreateApplicationBundleTask task = (CreateApplicationBundleTask) project.getTasks()
             .getByName("createApplicationBundle");
@@ -68,6 +68,7 @@ class CreateApplicationBundleTaskTest {
 
         MacApplicationBundleExt config = new MacApplicationBundleExt();
         config.setOutputDir(tempDir.getAbsolutePath());
+        config.setContentDir(Files.createTempDir().getAbsolutePath());
         config.setName("Example");
         config.setIdentifier("com.example");
         config.setMainClassName("HelloWorld.Main");

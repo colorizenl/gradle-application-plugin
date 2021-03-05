@@ -15,14 +15,14 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2020.6.13"
+version = "2020.6.16"
 sourceCompatibility = "11"
 targetCompatibility = "11"
 compileJava.options.encoding = "UTF-8"
 sourceSets.main.java.srcDirs = ["source"]
 sourceSets.main.resources.srcDirs = ["resources"]
 sourceSets.test.java.srcDirs = ["test"]
-jar.archiveName = "mac-application-bundle-plugin-${version}.jar"
+jar.archiveFileName = "mac-application-bundle-plugin-${version}.jar"
 
 repositories {
     mavenCentral()

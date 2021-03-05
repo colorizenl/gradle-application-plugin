@@ -14,7 +14,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 plugin to the build is done by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.macapplicationbundle" version "2020.6.13"
+        id "nl.colorize.gradle.macapplicationbundle" version "2020.6.16"
     }
     
 The plugin can be configured using the `macApplicationBundle` block. The configuration
@@ -25,7 +25,7 @@ The following shows an example on how to define this configuration in Gradle:
         name = "Example"
         identifier = "com.example"
         description = "A description for your application"
-        copyright = "Copyright 2020"
+        copyright = "Copyright 2021"
         bundleVersion = "1.0"
         icon = "resources/icon.icns"
         applicationCategory = "public.app-category.developer-tools"
@@ -33,7 +33,12 @@ The following shows an example on how to define this configuration in Gradle:
         outputDir = "${buildDir}"
         signIdentityApp = "your signing identity"
         signIdentityInstaller = "your signing identity"
+        startOnFirstThread = false
     }
+    
+Note that, in addition to the the `bundleVersion` property, there is also the concept of build
+version. This is normally the same as the bundle version, but can be manually specified for each
+build by setting the `buildversion` system property. 
     
 By default, the contents of the application will be based on all JAR files produces by the project,
 as described by the `libsDir` property. This behavior can be replaced by setting the `contentDir`
@@ -85,7 +90,7 @@ The following Gradle build tasks are available:
 License
 -------
 
-Copyright 2010-2020 Colorize
+Copyright 2010-2021 Colorize
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
