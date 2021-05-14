@@ -14,7 +14,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 plugin to the build is done by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.macapplicationbundle" version "2020.6.16"
+        id "nl.colorize.gradle.macapplicationbundle" version "2021.3"
     }
     
 The plugin can be configured using the `macApplicationBundle` block. The configuration

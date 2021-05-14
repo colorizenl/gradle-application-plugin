@@ -120,11 +120,20 @@ public class CreateApplicationBundleTask extends DefaultTask {
     }
 
     private File getContentDir(MacApplicationBundleExt config) {
-        if (config.getContentDir() == null) {
-            return (File) getProject().getProperties().get("libsDir");
-        } else {
+        if (config.getContentDir() != null) {
             return new File(config.getContentDir());
         }
+
+        File libsDir = (File) getProject().getProperties().get("libsDir");
+        if (libsDir != null) {
+            return libsDir;
+        }
+
+        // Gradle 7 and higher no longer have the libsDir property.
+
+        File buildDir = getProject().getBuildDir();
+        String libsDirName = (String) getProject().getProperties().get("libsDirName");
+        return new File(buildDir, libsDirName);
     }
 
     private Option createOption(String value) {
