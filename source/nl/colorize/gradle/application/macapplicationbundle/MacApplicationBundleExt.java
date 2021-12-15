@@ -1,12 +1,13 @@
 //-----------------------------------------------------------------------------
-// Gradle Mac Application Bundle Plugin
+// Gradle Application Plugin
 // Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
-package nl.colorize.gradle.macapplicationbundle;
+package nl.colorize.gradle.application.macapplicationbundle;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +38,15 @@ public class MacApplicationBundleExt {
 
     private String signIdentityApp;
     private String signIdentityInstaller;
+    
+    private static final List<String> DEFAULT_MODULES = Arrays.asList(
+        "java.base",
+        "java.desktop",
+        "java.logging",
+        "java.net.http",
+        "java.sql",
+        "jdk.crypto.ec"
+    );
 
     public MacApplicationBundleExt() {
         initDefaults();
@@ -52,11 +62,7 @@ public class MacApplicationBundleExt {
         minimumSystemVersion = "10.13";
 
         modules = new ArrayList<>();
-        modules.add("java.base");
-        modules.add("java.logging");
-        modules.add("java.desktop");
-        modules.add("java.net.http");
-        modules.add("jdk.crypto.ec");
+        modules.addAll(DEFAULT_MODULES);
 
         options = new ArrayList<>();
         options.add("-Xmx2g");

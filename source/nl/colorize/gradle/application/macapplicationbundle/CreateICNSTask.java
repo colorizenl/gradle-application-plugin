@@ -1,10 +1,10 @@
 //-----------------------------------------------------------------------------
-// Gradle Mac Application Bundle Plugin
+// Gradle Application Plugin
 // Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
-package nl.colorize.gradle.macapplicationbundle;
+package nl.colorize.gradle.application.macapplicationbundle;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;

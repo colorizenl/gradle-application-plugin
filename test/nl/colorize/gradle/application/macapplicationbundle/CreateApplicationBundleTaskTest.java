@@ -1,11 +1,12 @@
 //-----------------------------------------------------------------------------
-// Gradle Mac Application Bundle Plugin
+// Gradle Application Plugin
 // Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
-package nl.colorize.gradle.macapplicationbundle;
+package nl.colorize.gradle.application.macapplicationbundle;
 
+import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.internal.impldep.com.google.common.io.Files;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -23,7 +24,7 @@ class CreateApplicationBundleTaskTest {
     void createApplicationBundle() {
         File tempDir = Files.createTempDir();
         Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
-        ApplicationBundlePlugin plugin = new ApplicationBundlePlugin();
+        ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
 
         MacApplicationBundleExt config = new MacApplicationBundleExt();
@@ -47,7 +48,7 @@ class CreateApplicationBundleTaskTest {
         assertTrue(new File(tempDir + "/Example.app/Contents/MacOS").exists());
         assertTrue(new File(tempDir + "/Example.app/Contents/MacOS/JavaAppLauncher").exists());
         assertTrue(new File(tempDir + "/Example.app/Contents/Plugins").exists());
-        assertTrue(new File(tempDir + "/Example.app/Contents/Plugins/adoptopenjdk-11.jdk").exists());
+        assertTrue(new File(tempDir + "/Example.app/Contents/Plugins/temurin-17.jdk").exists());
         assertTrue(new File(tempDir + "/Example.app/Contents/Resources").exists());
         assertTrue(new File(tempDir + "/Example.app/Contents/Resources/icon.icns").exists());
         assertTrue(new File(tempDir + "/Example.app/Contents/Info.plist").exists());
@@ -58,7 +59,7 @@ class CreateApplicationBundleTaskTest {
     void includePlugins() throws IOException {
         File tempDir = Files.createTempDir();
         Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
-        ApplicationBundlePlugin plugin = new ApplicationBundlePlugin();
+        ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
 
         File tempPluginDir = Files.createTempDir();

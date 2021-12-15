@@ -1,11 +1,20 @@
-Mac application bundle plugin for Gradle
-========================================
+Gradle application plugin: build native applications for Mac, iOS, Android, and Windows
+=======================================================================================
 
-Gradle plugin that can be used to create a Mac OS
-[application bundle](https://en.wikipedia.org/wiki/Bundle_%28macOS%29) as part of the build. 
-This plugin is based on the [Ant plugin by TheInfiniteKind](https://github.com/TheInfiniteKind/appbundler), 
-but makes it available via Gradle. It also adds the ability to sign the application bundle and
-package it within an installer.
+Gradle plugin that is able to generate native applications for different platforms. It creates
+different types of applications depending on the source technology and targeted platforms:
+
+| Application type       | Supported source technology | Supported target platforms |
+|------------------------|-----------------------------|----------------------------|
+| Native Mac application | Java                        | Mac                        |
+| Cordova app            | Web app                     | iOS, Android, Mac          |
+| PWA                    | Web app                     | iOS, Android, Windows      |
+
+Regardless of the approach, building mobile apps requires the development environment for the
+targeted platforms:
+
+- Building iOS apps requires [Xcode](https://developer.apple.com/xcode/)
+- Building Android apps requires the [Android SDK](https://developer.android.com/sdk/index.html)
 
 Usage
 -----
@@ -14,10 +23,18 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 plugin to the build is done by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.macapplicationbundle" version "2021.3"
+        id "nl.colorize.gradle.application" version "2022.1"
     }
+
+Building native Mac applications
+--------------------------------
+
+The plugin can create Mac OS [application bundles](https://en.wikipedia.org/wiki/Bundle_%28macOS%29).
+This uses the [Ant plugin by TheInfiniteKind](https://github.com/TheInfiniteKind/appbundler), 
+but makes it available via Gradle. It also adds the ability to sign the application bundle and
+package it within an installer.
     
-The plugin can be configured using the `macApplicationBundle` block. The configuration
+The application bundle can be configured using the `macApplicationBundle` block. The configuration
 options correspong to the ones from the [Ant plugin](https://github.com/TheInfiniteKind/appbundler).
 The following shows an example on how to define this configuration in Gradle:
 
@@ -33,6 +50,8 @@ The following shows an example on how to define this configuration in Gradle:
         outputDir = "${buildDir}"
         signIdentityApp = "your signing identity"
         signIdentityInstaller = "your signing identity"
+        modules = ["java.base", "java.desktop", "java.logging", "java.net.http", "jdk.crypto.ec"]
+        options = ["-Xmx2g"]
         startOnFirstThread = false
     }
     
@@ -68,7 +87,74 @@ Signing the application bundle is mandatory for distributing the application. Th
 a valid Apple developer account, and corresponding certificates. You will need two certificates:
 one for the application, and one for the installer. Please do not hard-code the signing identity
 into the build file. It is better to define them in the Gradle properties file at
-`~/.gradle/gradle.properties` and then access them from there.   
+`~/.gradle/gradle.properties` and then access them from there.
+
+Building Cordova applications
+-----------------------------
+
+Use the `buildCordova` task to create [Cordova](https://cordova.apache.org) applications for iOS, 
+Android, and Mac. The applications are generated from scratch, the intended usage is that the 
+Cordova applications are not added to the repository, and are instead treated like build artifacts.
+
+In addition to the development environments for iOS and Android, using this task also requires
+[Cordova](https://cordova.apache.org) itself to be installed. Cordova currently *only* supports 
+Java 8, it does not support newer versions. The plugin will use the environment variable 
+`JAVA8_HOME` to locate the Java 8 JDK. This allows a newer Java version to be used for the build 
+itself, while still supporting Cordova Java 8.
+
+The plugin can be configured using the `cordova` block:
+
+    cordova {
+        webAppDir = "src"
+        appId = "nl.colorize.test"
+        appName = "Example"
+        displayVersion = "1.0.0"
+        icon = "icon.png"
+        buildJson = "/shared/cordova-config/build.json"
+    } 
+
+The following configuration options are available:
+
+| Name           | Required | Description                                                          |
+|----------------|----------|----------------------------------------------------------------------|
+| webAppDir      | yes      | Directory containing the web application files.                      |
+| outputDir      | no       | Output directory for the generated apps, default is `build/cordova`. |
+| platforms      | no       | Comma-separated list of platforms, default is `ios,android,osx`.     |
+| appId          | yes      | Application identifier, e.g. `nl.colorize.test`.                     |
+| appName        | yes      | Application display name.                                            |
+| displayVersion | yes      | Application version in the format x.y.z.                             |
+| icon           | yes      | Application icon, should be a 1024x1024 PNG image.                   |
+| buildJson      | yes      | Location of the Cordova `build.json` configuration file.             |
+| dist           | no       | Build distribution type, either 'release' (default) or 'debug'.      |
+
+Note that, in addition to the the `displayVersion` property, there is also the concept of build
+version. This is normally the same as the display version, but can be manually specified for each
+build by setting the `buildversion` system property. 
+
+In addition to the actual build, the plugin also adds two convenience tasks, `simulateIOS` and
+`simulateAndroid`, to start an iOS/Android simulator for the generated Cordova apps.
+
+Building PWA apps
+-----------------
+
+The plugin can also repackage [PWAs](https://en.wikipedia.org/wiki/Progressive_web_application) as
+native applications. The following helper tasks can be used during the creation of PWAs:
+
+- `generatePwaServiceWorker` generates a service worker that caches the application's files.
+- `generatePwaIcons` takes the application icon and generates multiple variants in different sizes.
+
+These tasks share the same configuration via the `pwa` configuration section. The following 
+configuration options are available:
+
+| Name              | Required | Description                                                                  |
+|-------------------|----------|------------------------------------------------------------------------------|
+| pwaName           | yes      | PWA application name.                                                        |
+| pwaVersion        | no       | PWA application version.                                                     |
+| serviceWorkerFile | yes      | Output file where the generated service worker will be created.              |
+| webAppDir         | yes      | Directory where the application files are located.                           |
+| iconFile          | yes      | The original application file, used to generate variants in different sizes. |
+| iconOutputDir     | yes      | Directory where the variants of the application icon will be saved.          |
+| iconSizes         | no       | List of application icon variants to generate.                               |
 
 Build instructions
 ------------------

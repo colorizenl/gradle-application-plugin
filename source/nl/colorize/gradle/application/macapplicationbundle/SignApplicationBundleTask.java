@@ -1,10 +1,10 @@
 //-----------------------------------------------------------------------------
-// Gradle Mac Application Bundle Plugin
+// Gradle Application Plugin
 // Copyright 2010-2021 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
-package nl.colorize.gradle.macapplicationbundle;
+package nl.colorize.gradle.application.macapplicationbundle;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -21,6 +21,11 @@ public class SignApplicationBundleTask extends DefaultTask {
 
     private static final String ENTITLEMENTS_APP = "entitlements-app.plist";
     private static final String ENTITLEMENTS_JRE = "entitlements-jre.plist";
+
+    private static final List<String> SUPPORTED_EMBEDDED_JDKS = List.of(
+        "temurin-17.jdk",
+        "adoptopenjdk-11.jdk"
+    );
 
     @TaskAction
     public void run() {
@@ -43,7 +48,13 @@ public class SignApplicationBundleTask extends DefaultTask {
         }
 
         File pluginsDir = new File(appFile.getAbsolutePath() + "/Contents/PlugIns");
-        File embeddedJRE = new File(pluginsDir, "adoptopenjdk-11.jdk");
+        File embeddedJDK = new File(pluginsDir, getEmbeddedJdkName());
+
+        if (!embeddedJDK.exists()) {
+            throw new IllegalStateException("Cannot locate embedded JDK: " +
+                embeddedJDK.getAbsolutePath());
+        }
+
         File jreEntitlements = generateEntitlements(ENTITLEMENTS_JRE);
 
         Files.walk(appFile.toPath())
@@ -54,13 +65,25 @@ public class SignApplicationBundleTask extends DefaultTask {
         if (config.isSignPlugins()) {
             Files.walk(pluginsDir.toPath(), 1)
                 .map(Path::toFile)
-                .filter(file -> !file.equals(pluginsDir) && !file.equals(embeddedJRE))
+                .filter(file -> !file.equals(pluginsDir) && !file.equals(embeddedJDK))
                 .forEach(plugin -> sign(config, plugin, jreEntitlements));
         }
 
-        sign(config, embeddedJRE, jreEntitlements);
+        sign(config, embeddedJDK, jreEntitlements);
         sign(config, appFile, generateEntitlements(ENTITLEMENTS_APP));
         createInstallerPackage(config, appFile);
+    }
+
+    private String getEmbeddedJdkName() {
+        String javaHome = System.getenv("JAVA_HOME");
+
+        for (String jdk : SUPPORTED_EMBEDDED_JDKS) {
+            if (javaHome.contains(jdk)) {
+                return jdk;
+            }
+        }
+
+        throw new IllegalArgumentException("Embedded JDK not supported: " + javaHome);
     }
 
     private boolean shouldSignFile(File file) {

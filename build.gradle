@@ -15,14 +15,14 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2021.3"
+version = "2022.1"
 sourceCompatibility = "11"
 targetCompatibility = "11"
 compileJava.options.encoding = "UTF-8"
 sourceSets.main.java.srcDirs = ["source"]
 sourceSets.main.resources.srcDirs = ["resources"]
 sourceSets.test.java.srcDirs = ["test"]
-jar.archiveFileName = "mac-application-bundle-plugin-${version}.jar"
+jar.archiveFileName = "application-plugin-${version}.jar"
 jar.duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
 repositories {
@@ -33,7 +33,7 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation files("lib/appbundler.jar")
-    testImplementation "org.junit.jupiter:junit-jupiter:5.6.2"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.8.2"
 }
 
 jar {
@@ -50,29 +50,38 @@ test {
 
 gradlePlugin {
     plugins {
-        macApplicationBundlePlugin {
-            id = "nl.colorize.gradle.macapplicationbundle"
-            implementationClass = "nl.colorize.gradle.macapplicationbundle.ApplicationBundlePlugin"
+        applicationPlugin {
+            id = "nl.colorize.gradle.application"
+            implementationClass = "nl.colorize.gradle.application.ApplicationPlugin"
         }
     }
 }
 
 pluginBundle {
     website = "http://www.colorize.nl/en/"
-    vcsUrl = "https://github.com/colorizenl/gradle-mac-application-bundle-plugin"
-    description = "Gradle plugin to create Mac application bundle."
-    tags = ["mac", "macos", "application bundle"]
+    vcsUrl = "https://github.com/colorizenl/gradle-application-plugin"
+    description = "Gradle plugin to build native applications for Mac, iOS, Android, and Windows."
+    tags = ["application", "mac", "macos", "android", "windows", "application bundle"]
     
     plugins {
-        macApplicationBundlePlugin {
-            id = "nl.colorize.gradle.macapplicationbundle"
-            displayName = "Gradle plugin to create Mac application bundle."
+        applicationPlugin {
+            id = "nl.colorize.gradle.application"
+            displayName = "Gradle application plugin"
         }
     }
     
     mavenCoordinates {
         groupId = "nl.colorize"
-        artifactId = "mac-application-bundle-plugin"
+        artifactId = "gradle-application-plugin"
+    }
+}
+
+task coverage(dependsOn: ["test", "jacocoTestReport"]) {
+    doLast {
+        def report = file("${buildDir}/reports/jacoco/test/html/index.html").text
+        def coverage = report =~ "tfoot.*?ctr2.*?>([\\d.]+%).*?tfoot"
+        println "-" * 40
+        println "Test coverage: " + coverage[0][1]
     }
 }
 
