@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2021 Colorize
+// Copyright 2010-2022 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -11,6 +11,7 @@ import org.gradle.api.Project;
 import org.gradle.internal.impldep.com.google.common.io.Files;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CreateApplicationBundleTaskTest {
 
     @Test
-    void createApplicationBundle() {
-        File tempDir = Files.createTempDir();
+    void createApplicationBundle(@TempDir File tempDir) {
         Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
@@ -32,7 +32,7 @@ class CreateApplicationBundleTaskTest {
         config.setName("Example");
         config.setIdentifier("com.example");
         config.setDescription("A description for your application");
-        config.setCopyright("Copyright 2021");
+        config.setCopyright("Copyright 2022");
         config.setMainClassName("HelloWorld.Main");
         config.setContentDir("resources");
         config.setBundleVersion("1.0");
@@ -56,8 +56,7 @@ class CreateApplicationBundleTaskTest {
     }
 
     @Test
-    void includePlugins() throws IOException {
-        File tempDir = Files.createTempDir();
+    void includePlugins(@TempDir File tempDir) throws IOException {
         Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);

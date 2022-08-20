@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2021 Colorize
+// Copyright 2010-2022 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -8,9 +8,9 @@ package nl.colorize.gradle.application.macapplicationbundle;
 
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
-import org.gradle.internal.impldep.com.google.common.io.Files;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,8 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SignApplicationBundleTaskTest {
 
     @Test
-    void signApplicationBundle() throws IOException {
-        File tempDir = Files.createTempDir();
+    void signApplicationBundle(@TempDir File tempDir) throws IOException {
         Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);

@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2021 Colorize
+// Copyright 2010-2022 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -8,9 +8,9 @@ package nl.colorize.gradle.application.macapplicationbundle;
 
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
-import org.gradle.internal.impldep.com.google.common.io.Files;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CreateICNSTaskTest {
 
     @Test
-    void createICNS() throws IOException {
+    void createICNS(@TempDir File tempDir) throws IOException {
         BufferedImage image = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = image.createGraphics();
         g2.setColor(Color.RED);
@@ -34,7 +34,6 @@ class CreateICNSTaskTest {
         File tempFile = File.createTempFile("image", ".png");
         ImageIO.write(image, "png", tempFile);
 
-        File tempDir = Files.createTempDir();
         Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);

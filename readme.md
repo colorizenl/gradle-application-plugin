@@ -1,19 +1,20 @@
-Gradle application plugin: build native applications for Mac, iOS, Android, and Windows
-=======================================================================================
+Gradle application plugin: build applications for Mac, iOS, Android, and Windows
+================================================================================
 
-Gradle plugin that is able to generate native applications for different platforms. It creates
-different types of applications depending on the source technology and targeted platforms:
+Gradle plugin that creates (native) applications for different platforms. It supports multiple
+application types, for different source technologies and target platforms:
 
 | Application type       | Supported source technology | Supported target platforms |
 |------------------------|-----------------------------|----------------------------|
 | Native Mac application | Java                        | Mac                        |
 | Cordova app            | Web app                     | iOS, Android, Mac          |
 | PWA                    | Web app                     | iOS, Android, Windows      |
+| Static site            | Web app, Markdown           | Web                        |
 
 Regardless of the approach, building mobile apps requires the development environment for the
 targeted platforms:
 
-- Building iOS apps requires [Xcode](https://developer.apple.com/xcode/)
+- Building iOS and Mac apps requires [Xcode](https://developer.apple.com/xcode/)
 - Building Android apps requires the [Android SDK](https://developer.android.com/sdk/index.html)
 
 Usage
@@ -23,7 +24,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 plugin to the build is done by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2022.1"
+        id "nl.colorize.gradle.application" version "2022.4.5"
     }
 
 Building native Mac applications
@@ -42,7 +43,7 @@ The following shows an example on how to define this configuration in Gradle:
         name = "Example"
         identifier = "com.example"
         description = "A description for your application"
-        copyright = "Copyright 2021"
+        copyright = "Copyright 2022"
         bundleVersion = "1.0"
         icon = "resources/icon.icns"
         applicationCategory = "public.app-category.developer-tools"
@@ -69,6 +70,9 @@ libraries is easiest by creating a single "fat JAR" file:
             configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
         }
      }
+     
+This might require you to add `jar.duplicatesStrategy = DuplicatesStrategy.INCLUDE` if your project
+includes multiple files with identical paths.
     
 The plugin adds a number of tasks to the project that use this configuration:
 
@@ -156,12 +160,38 @@ configuration options are available:
 | iconOutputDir     | yes      | Directory where the variants of the application icon will be saved.          |
 | iconSizes         | no       | List of application icon variants to generate.                               |
 
-Build instructions
-------------------
+Building a static site
+----------------------
+
+The plugin can take content written in Markdown or plain HTML, and then render this content using
+templates to create a [static site](https://en.wikipedia.org/wiki/Static_web_page). This is done
+using the `generateStaticSite` task, which uses the following logic:
+
+- The output directory structure will match the content directory structure.
+- Each directory can include a file called `template.html`. 
+- The template contains a tag `<clrz-content>`, the contents of this tag will be replaced with
+  the article content.
+- For HTML files, the file content is used as the article.
+- For Markdown files, the file is first rendered to HTML, which is then used as the article.
+- Subdirectories can contain their own `template.html` file. If so, the process described above
+  is repeated recursively.
+- All files except HTML and Markdown are retained in the static site. 
+
+The static site is configured using the `staticSite` configuration section. The following options
+are available:
+
+| Name             | Required | Default       | Description                                       |
+|------------------|----------|---------------|---------------------------------------------------|
+| contentDir       | no       | content       | Content directory, relative to project directory. |
+| outputDir        | no       | staticsite    | Output directory, relative to build directory.    |
+| templateFileName | no       | template.html | File name used as template instead of content.    |
+
+Instructions for building the plugin itself
+-------------------------------------------
 
 Building the plugin itself can only be done on Mac OS. It also requires the following:
 
-- [Java JDK](http://java.oracle.com) 11+
+- [Java JDK](http://java.oracle.com) 17+
 - [Gradle](http://gradle.org)
 - [Ant](https://ant.apache.org)
 
@@ -172,11 +202,16 @@ The following Gradle build tasks are available:
 - `gradle test` runs all unit tests
 - `gradle coverage` runs all unit tests and reports on test coverage
 - `gradle publishPlugins` publishes the plugin to the Gradle plugin portal (requires account)
+
+**Note:** Running the tests currently requires some additional JVM properties on Java 17+,
+due to a [Gradle issue](https://github.com/gradle/gradle/issues/18647). These properties are
+automatically used when running from Gradle, but need to be added manually when running tests 
+from an IDE.
   
 License
 -------
 
-Copyright 2010-2021 Colorize
+Copyright 2010-2022 Colorize
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

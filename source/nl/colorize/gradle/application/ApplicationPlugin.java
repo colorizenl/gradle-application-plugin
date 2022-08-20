@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2021 Colorize
+// Copyright 2010-2022 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -17,6 +17,8 @@ import nl.colorize.gradle.application.macapplicationbundle.SignApplicationBundle
 import nl.colorize.gradle.application.pwa.GeneratePwaServiceWorkerTask;
 import nl.colorize.gradle.application.pwa.GeneratePwaIconsTask;
 import nl.colorize.gradle.application.pwa.PwaExt;
+import nl.colorize.gradle.application.staticsite.GenerateStaticSiteTask;
+import nl.colorize.gradle.application.staticsite.StaticSiteExt;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -33,6 +35,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         configureMacApplicationBundle(project);
         configureCordova(project);
         configurePWA(project);
+        configureStaticSite(project);
     }
 
     private void configureMacApplicationBundle(Project project) {
@@ -65,5 +68,13 @@ public class ApplicationPlugin implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
         tasks.create("generatePwaServiceWorker", GeneratePwaServiceWorkerTask.class);
         tasks.create("generatePwaIcons", GeneratePwaIconsTask.class);
+    }
+
+    private void configureStaticSite(Project project) {
+        ExtensionContainer ext = project.getExtensions();
+        ext.create("staticSite", StaticSiteExt.class);
+
+        TaskContainer tasks = project.getTasks();
+        tasks.create("generateStaticSite", GenerateStaticSiteTask.class);
     }
 }

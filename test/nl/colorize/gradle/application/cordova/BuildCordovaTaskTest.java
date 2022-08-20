@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2021 Colorize
+// Copyright 2010-2022 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -10,10 +10,10 @@ import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,8 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BuildCordovaTaskTest {
 
     @Test
-    void createDebugVersionApps() throws IOException {
-        File tempDir = Files.createTempDirectory("test-cordova").toFile();
+    void createDebugVersionApps(@TempDir File tempDir) throws IOException {
         Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
@@ -62,7 +61,7 @@ class BuildCordovaTaskTest {
         json += "}\n";
 
         File buildJsonFile = File.createTempFile("build", ".json");
-        Files.write(buildJsonFile.toPath(), json.getBytes(StandardCharsets.UTF_8));
+        Files.writeString(buildJsonFile.toPath(), json);
 
         CordovaExt config = new CordovaExt();
         config.setWebAppDir(new File("resources").getAbsolutePath());
