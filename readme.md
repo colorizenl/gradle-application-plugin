@@ -56,8 +56,6 @@ The following shows an example on how to define this configuration in Gradle:
         applicationCategory = "public.app-category.developer-tools"
         mainClassName = "com.example.app.Main"
         outputDir = "${buildDir}"
-        signIdentityApp = "your signing identity"
-        signIdentityInstaller = "your signing identity"
         modules = ["java.base", "java.desktop", "java.logging", "java.net.http", "jdk.crypto.ec"]
         options = ["-Xmx2g"]
         startOnFirstThread = false
@@ -83,8 +81,6 @@ The following configuration options are available:
 | `startOnFirstThread`    | no       | When true, starts the application with `-XstartOnFirstThread`.    |
 | `icon`                  | yes      | Location of the `.icns` file.                                     |
 | `outputDir`             | no       | Output directory path, defaults to `build/mac`.                   |
-| `signIdentityApp`       | no       | ID for signing applications.                                      |
-| `signIdentityInstaller` | no       | ID for signing installers.                                        |
     
 - Note that, in addition to the `bundleVersion` property, there is also the concept of build
   version. This is normally the same as the bundle version, but can be manually specified for each
@@ -98,6 +94,7 @@ The following configuration options are available:
   `contentDir` property in the plugin's configuration. The easiest way to bundle all content, 
   including  application binaries, resources, and libraries, is to create a single "fat JAR" file:
 
+```
     jar.duplicatesStrategy = DuplicatesStrategy.WARN
 
     jar {
@@ -105,6 +102,7 @@ The following configuration options are available:
             configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
         }
      }
+```
     
 The plugin adds a number of tasks to the project that use this configuration:
 
