@@ -9,4 +9,5 @@ jobs:
         uses: actions/checkout@v2
       - name: Compile
         run: gradle compileJava
-
+      - name: Unit tests
+        script: gradle coverage -Pheadless=true
