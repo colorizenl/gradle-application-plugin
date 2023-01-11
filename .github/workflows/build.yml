@@ -10,4 +10,4 @@ jobs:
       - name: Compile
         run: gradle compileJava
       - name: Unit tests
-        script: gradle coverage -Pheadless=true
+        run: gradle coverage -Pheadless=true
