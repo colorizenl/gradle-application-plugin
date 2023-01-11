@@ -1,30 +1,40 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2022 Colorize
+// Copyright 2010-2023 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
 package nl.colorize.gradle.application.pwa;
 
 import lombok.Data;
+import nl.colorize.gradle.application.AppHelper;
+import org.gradle.api.Project;
 
 import java.io.File;
-import java.util.List;
 
 @Data
 public class PwaExt {
 
-    private String pwaName;
-    private String pwaVersion;
-    private File webAppDir;
-    private File serviceWorkerFile;
-
-    private File iconFile;
-    private List<Integer> iconSizes;
-    private File iconOutputDir;
+    private String webAppDir;
+    private String outputDir;
+    private String manifest;
+    private String serviceWorker;
+    private String cacheName;
 
     public PwaExt() {
-        this.pwaVersion = "1.0";
-        this.iconSizes = List.of(48, 72, 96, 144, 168, 192);
+        this.outputDir = "pwa";
+    }
+
+    public File getOutputDir(Project project) {
+        return AppHelper.getOutputDir(project, outputDir);
+    }
+
+    public void validate() {
+        AppHelper.check(webAppDir != null, "Missing pwa.webAppDir");
+        AppHelper.check(manifest != null, "Missing pwa.manifest");
+        AppHelper.check(cacheName != null, "Missing pwa.cacheName");
+
+        File indexFile = new File(webAppDir, "index.html");
+        AppHelper.check(indexFile.exists(), "pwa.webAppDir not contain index.html");
     }
 }

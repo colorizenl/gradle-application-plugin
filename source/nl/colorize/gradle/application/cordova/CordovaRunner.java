@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2022 Colorize
+// Copyright 2010-2023 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ public class CordovaRunner {
     }
 
     public void run(List<String> command) {
-        File outputDir = config.prepareOutputDir(project);
+        File outputDir = config.getOutputDir(project);
         String java8Home = System.getenv("JAVA8_HOME");
 
         if (java8Home == null) {

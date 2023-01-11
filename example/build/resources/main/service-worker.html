@@ -1,0 +1,8 @@
+<script>
+    const serviceWorkerSupported = typeof navigator.serviceWorker != "undefined";
+    const localFile = window.location.protocol.indexOf("file") != -1;
+
+    if (serviceWorkerSupported && !localFile) {
+        navigator.serviceWorker.register("service-worker.js");
+    }
+</script>

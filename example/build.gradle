@@ -1,0 +1,57 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath files("../build/libs/application-plugin.jar")
+        classpath "org.jsoup:jsoup:1.15.3"
+        classpath "org.commonmark:commonmark:0.21.0"
+        classpath "org.nanohttpd:nanohttpd-webserver:2.3.1"
+    }
+}
+
+apply plugin: "java"
+apply plugin: "nl.colorize.gradle.application"
+
+group = "nl.colorize"
+version = "1.0"
+sourceCompatibility = "17"
+targetCompatibility = "17"
+compileJava.options.encoding = "UTF-8"
+sourceSets.main.java.srcDirs = ["source"]
+sourceSets.main.resources.srcDirs = ["../resources"]
+sourceSets.test.java.srcDirs = ["source"]
+jar.archiveFileName = "example.jar"
+jar.duplicatesStrategy = DuplicatesStrategy.WARN
+
+macApplicationBundle {
+    name = "Example"
+    identifier = "com.example"
+    bundleVersion = "1.0"
+    description = "A simple example application"
+    copyright = "Copyright 2010-2023 Colorize"
+    icon = "../resources/icon.icns"
+    applicationCategory = "public.app-category.developer-tools"
+    mainClassName = "com.example.ExampleApp"
+}
+
+windows {
+    inherit = true
+    mainJar = "example.jar"
+    vendor = "Colorize"
+    icon = "../resources/icon.ico"
+    uuid = "b9112b5f-2340-4541-8883-6abd3c9c8780"
+}
+
+pwa {
+    webAppDir = "${buildDir}/staticsite"
+    manifest = "web/manifest.json"
+    cacheName = "example"
+}
+
+staticSite {
+    contentDir = "web"
+}
+
+generatePWA.dependsOn generateStaticSite

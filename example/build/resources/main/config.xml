@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget id="@@@ID" version="@@@VERSION" android-versionCode="@@@BUILDVERSION" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>@@@NAME</name>
+    <content src="index.html" />
+    <icon src="icon.png" />
+    <plugin name="cordova-plugin-whitelist" spec="1" />
+    <access origin="*" />
+    <allow-navigation href="*" />
+    
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    
+    <platform name="android">
+        <allow-intent href="market:*" />
+    </platform>
+    
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+        <preference name="prerendered-icon" value="true" />
+        <preference name="WKWebViewOnly" value="true" />
+        <feature name="CDVWKWebViewEngine">
+            <param name="ios-package" value="CDVWKWebViewEngine" />
+        </feature>
+        <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+    </platform>
+    
+    <platform name="osx">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+        <preference name="WindowSize" value="900x600" />
+        <preference name="EnableWebGL" value="true" />
+    </platform>
+    
+    <widget>
+       <allow-navigation href="http://*/*" />
+    </widget>
+</widget>

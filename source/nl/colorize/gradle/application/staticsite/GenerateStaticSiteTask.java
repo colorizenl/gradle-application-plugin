@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2022 Colorize
+// Copyright 2010-2023 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ public class GenerateStaticSiteTask extends DefaultTask {
 
     protected void run(StaticSiteExt config) {
         File contentDir = new File(getProject().getProjectDir(), config.getContentDir());
-        File outputDir = new File(getProject().getBuildDir(), config.getOutputDir());
+        File outputDir = config.getOutputDir(getProject());
 
         reset(outputDir);
 

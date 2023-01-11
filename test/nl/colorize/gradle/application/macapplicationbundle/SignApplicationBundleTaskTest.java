@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2022 Colorize
+// Copyright 2010-2023 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -21,18 +21,18 @@ class SignApplicationBundleTaskTest {
 
     @Test
     void signApplicationBundle(@TempDir File tempDir) throws IOException {
-        Project project = ProjectBuilder.builder().withProjectDir(tempDir).build();
+        Project project = ProjectBuilder.builder()
+            .withProjectDir(tempDir)
+            .build();
+
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
 
         MacApplicationBundleExt config = new MacApplicationBundleExt();
-        config.setOutputDir(tempDir.getAbsolutePath());
         config.setName("Example");
         config.setIdentifier("com.example");
         config.setMainClassName("HelloWorld.Main");
         config.setContentDir("resources");
-        config.setSignIdentityApp("3rd Party Mac Developer Application: Colorize (F9TKFY3EK3)");
-        config.setSignIdentityInstaller("3rd Party Mac Developer Installer: Colorize (F9TKFY3EK3)");
 
         CreateApplicationBundleTask createTask = (CreateApplicationBundleTask) project.getTasks()
             .getByName("createApplicationBundle");
@@ -42,7 +42,7 @@ class SignApplicationBundleTaskTest {
             .getByName("signApplicationBundle");
         signTask.run(config);
 
-        File bundle = new File(tempDir + "/Example.app");
+        File bundle = new File(tempDir + "/build/mac/Example.app");
 
         assertTrue(bundle.exists());
     }

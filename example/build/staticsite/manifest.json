@@ -1,0 +1,18 @@
+{
+    "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+    "name": "Example",
+    "short_name": "Example",
+    "description": "A simple example PWA.",
+    "start_url": ".",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#EBEBEB",
+    "theme_color": "#EBEBEB",
+    "icons": [
+        {
+            "src": "../../../logo.png",
+            "type": "image/png",
+            "sizes": "1024x1024"
+        }
+    ]
+}

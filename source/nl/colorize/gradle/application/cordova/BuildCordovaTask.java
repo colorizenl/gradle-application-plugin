@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2022 Colorize
+// Copyright 2010-2023 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ public class BuildCordovaTask extends DefaultTask {
         checkConfiguration(config);
 
         try {
-            File outputDir = config.prepareOutputDir(getProject());
+            File outputDir = config.getOutputDir(getProject());
             File configFile = new File(outputDir, "config.xml");
 
             if (!configFile.exists()) {
@@ -69,7 +69,7 @@ public class BuildCordovaTask extends DefaultTask {
     }
 
     private void createCordovaApp(CordovaExt config) throws IOException {
-        File outputDir = config.prepareOutputDir(getProject());
+        File outputDir = config.getOutputDir(getProject());
         outputDir.mkdir();
 
         runCordova(config, "cordova", "create", outputDir.getAbsolutePath(), config.getAppId(),
@@ -132,14 +132,14 @@ public class BuildCordovaTask extends DefaultTask {
             xml = xml.replace("@@@VERSION", config.getDisplayVersion());
             xml = xml.replace("@@@BUILDVERSION", config.getBuildVersion());
 
-            File outputDir = config.prepareOutputDir(getProject());
+            File outputDir = config.getOutputDir(getProject());
             File configFile = new File(outputDir, "config.xml");
             Files.write(configFile.toPath(), xml.getBytes(StandardCharsets.UTF_8));
         }
     }
 
     private void buildCordovaApp(CordovaExt config) {
-        File outputDir = config.prepareOutputDir(getProject());
+        File outputDir = config.getOutputDir(getProject());
         File appRoot = new File(outputDir, "www");
 
         getProject().delete(appRoot);
@@ -171,7 +171,7 @@ public class BuildCordovaTask extends DefaultTask {
     }
 
     private File getOutput(CordovaExt config, String path) {
-        File outputDir = config.prepareOutputDir(getProject());
+        File outputDir = config.getOutputDir(getProject());
         return new File(outputDir.getAbsolutePath() + "/" + path);
     }
 }

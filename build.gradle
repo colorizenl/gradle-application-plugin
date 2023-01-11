@@ -6,13 +6,13 @@ buildscript {
     }
     
     dependencies {
-        classpath "com.gradle.publish:plugin-publish-plugin:1.0.0"
+        classpath "com.gradle.publish:plugin-publish-plugin:1.1.0"
     }
 }
 
 plugins {
-    id "io.freefair.lombok" version "6.5.0.3"
-    id "com.github.ben-manes.versions" version "0.42.0"
+    id "io.freefair.lombok" version "6.6.1"
+    id "com.github.ben-manes.versions" version "0.44.0"
 }
 
 apply plugin: "java-gradle-plugin"
@@ -20,15 +20,15 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2022.4.5"
+version = "2023.2"
 sourceCompatibility = "17"
 targetCompatibility = "17"
 compileJava.options.encoding = "UTF-8"
 sourceSets.main.java.srcDirs = ["source"]
 sourceSets.main.resources.srcDirs = ["resources"]
 sourceSets.test.java.srcDirs = ["test"]
-jar.archiveFileName = "application-plugin-${version}.jar"
-jar.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+jar.archiveFileName = "application-plugin.jar"
+jar.duplicatesStrategy = DuplicatesStrategy.WARN
 
 repositories {
     mavenCentral()
@@ -38,9 +38,10 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation files("lib/appbundler-1.0ea.jar")
-    implementation "org.jsoup:jsoup:1.15.2"
-    implementation "org.commonmark:commonmark:0.18.1"
-    testImplementation "org.junit.jupiter:junit-jupiter:5.9.0"
+    implementation "org.jsoup:jsoup:1.15.3"
+    implementation "org.commonmark:commonmark:0.21.0"
+    implementation "org.nanohttpd:nanohttpd-webserver:2.3.1"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.9.1"
 }
 
 jar {
@@ -48,6 +49,12 @@ jar {
         configurations.runtimeClasspath
             .filter { it.toString().endsWith("appbundler-1.0ea.jar") }
             .collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+test {
+    if (project.hasProperty("headless")) {
+        exclude "**/cordova/**", "**/macapplicationbundle/**", "**/windows/**"
     }
 }
 
@@ -61,17 +68,19 @@ gradlePlugin {
             id = "nl.colorize.gradle.application"
             implementationClass = "nl.colorize.gradle.application.ApplicationPlugin"
             displayName = "Gradle application plugin"
-            description = "Gradle plugin to build native applications for Mac, iOS, Android, and Windows."
+            description = "Build native applications for Windows, Mac, iOS, Android, and the web."
         }
     }
 }
 
 pluginBundle {
-    website = "http://www.colorize.nl/en/"
+    website = "https://www.clrz.nl"
     vcsUrl = "https://github.com/colorizenl/gradle-application-plugin"
     tags = ["application", "mac", "macos", "android", "windows", "application bundle", "pwa"]
 }
 
+// Gradle has a compatibility issue with Java 17 when running tests,
+// see https://github.com/gradle/gradle/issues/18647 for details.
 tasks.withType(Test).configureEach {
     jvmArgs(["--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED"])
 }
@@ -82,12 +91,5 @@ task coverage(dependsOn: ["test", "jacocoTestReport"]) {
         def coverage = report =~ "tfoot.*?ctr2.*?>([\\d.]+%).*?tfoot"
         println "-" * 40
         println "Test coverage: " + coverage[0][1]
-    }
-}
-
-task checkSigningIdentity() {
-    doLast {
-        println project.property("macApplicationBundle.identity.app")
-        println project.property("macApplicationBundle.identity.installer")
     }
 }
