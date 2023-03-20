@@ -10,10 +10,17 @@ import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+/**
+ * Utility class with shared logic between the different tasks and sub-plugins.
+ */
 public class AppHelper {
 
     private AppHelper() {
@@ -59,6 +66,18 @@ public class AppHelper {
         return value;
     }
 
+    public static File getProjectDir(Project project, String name) {
+        if (name.startsWith("/")) {
+            return new File(name);
+        } else {
+            return new File(project.getProjectDir().getAbsolutePath() + "/" + name);
+        }
+    }
+
+    public static File getProjectFile(Project project, String name) {
+        return getProjectDir(project, name);
+    }
+
     public static File getOutputDir(Project project, String name) {
         File outputDir = new File(project.getBuildDir().getAbsolutePath() + "/" + name);
         if (!project.getBuildDir().exists()) {
@@ -88,5 +107,36 @@ public class AppHelper {
         }
 
         dir.mkdir();
+    }
+
+    public static File mkdir(File dir) {
+        if (!dir.exists()) {
+            if (!dir.mkdir()) {
+                throw new IllegalStateException("Unable to create " + dir.getAbsolutePath());
+            }
+        }
+        return dir;
+    }
+
+    public static String loadResourceFile(String path) {
+        try (InputStream stream = AppHelper.class.getClassLoader().getResourceAsStream(path)) {
+            check(stream != null, "Unable to locate resource file: " + path);
+            byte[] contents = stream.readAllBytes();
+            return new String(contents, UTF_8);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Resource file not found: " + path);
+        }
+    }
+
+    /**
+     * Loads the specified resource file into a string, and then substitutes
+     * the specified placeholders with the provided values.
+     */
+    public static String loadResourceFile(String path, Map<String, String> properties) {
+        String contents = loadResourceFile(path);
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
+            contents = contents.replace(entry.getKey(), entry.getValue());
+        }
+        return contents;
     }
 }

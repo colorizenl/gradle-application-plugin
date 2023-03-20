@@ -6,14 +6,15 @@
 
 package nl.colorize.gradle.application.pwa;
 
+import nl.colorize.gradle.application.AppHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -45,18 +46,9 @@ public class GeneratePwaTask extends DefaultTask {
         }
     }
 
-    private String loadResourceFile(String path) {
-        try (InputStream stream = getClass().getClassLoader().getResourceAsStream(path)) {
-            byte[] contents = stream.readAllBytes();
-            return new String(contents, UTF_8);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Resource file not found: " + path);
-        }
-    }
-
     private void rewriteHTML(File indexFile) throws IOException {
         String manifestSnippet = "<link rel=\"manifest\" href=\"manifest.json\" />\n";
-        String serviceWorkerSnippet = loadResourceFile("service-worker.html");
+        String serviceWorkerSnippet = AppHelper.loadResourceFile("service-worker.html");
 
         String html = Files.readString(indexFile.toPath(), UTF_8);
         html = html.replace("</head>", manifestSnippet + "</head>");
@@ -92,9 +84,9 @@ public class GeneratePwaTask extends DefaultTask {
             .map(file -> "\"" + file + "\",\n")
             .collect(Collectors.joining(""));
 
-        String js = loadResourceFile("service-worker.js");
-        js = js.replace("{{cacheName}}", config.getCacheName());
-        js = js.replace("{{resourceFiles}}", resourceFileList);
-        return js;
+        return AppHelper.loadResourceFile("service-worker.js", Map.of(
+            "{{cacheName}}", config.getCacheName(),
+            "{{resourceFiles}}", resourceFileList
+        ));
     }
 }

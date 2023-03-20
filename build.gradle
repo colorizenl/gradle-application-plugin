@@ -11,8 +11,8 @@ buildscript {
 }
 
 plugins {
-    id "io.freefair.lombok" version "6.6.1"
-    id "com.github.ben-manes.versions" version "0.44.0"
+    id "io.freefair.lombok" version "6.6.3"
+    id "com.github.ben-manes.versions" version "0.46.0"
 }
 
 apply plugin: "java-gradle-plugin"
@@ -20,15 +20,13 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2023.2"
+version = "2023.4"
 sourceCompatibility = "17"
 targetCompatibility = "17"
 compileJava.options.encoding = "UTF-8"
 sourceSets.main.java.srcDirs = ["source"]
 sourceSets.main.resources.srcDirs = ["resources"]
 sourceSets.test.java.srcDirs = ["test"]
-jar.archiveFileName = "application-plugin.jar"
-jar.duplicatesStrategy = DuplicatesStrategy.WARN
 
 repositories {
     mavenCentral()
@@ -38,13 +36,21 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation files("lib/appbundler-1.0ea.jar")
-    implementation "org.jsoup:jsoup:1.15.3"
+    implementation "org.jsoup:jsoup:1.15.4"
     implementation "org.commonmark:commonmark:0.21.0"
     implementation "org.nanohttpd:nanohttpd-webserver:2.3.1"
-    testImplementation "org.junit.jupiter:junit-jupiter:5.9.1"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.9.2"
 }
 
 jar {
+    archiveFileName = "application-plugin.jar"
+    duplicatesStrategy = DuplicatesStrategy.WARN
+    exclude "**/module-info.class"
+    exclude "**/META-INF/INDEX.LIST"
+    exclude "**/META-INF/*.SF"
+    exclude "**/META-INF/*.DSA"
+    exclude "**/META-INF/*.RSA"
+
     from {
         configurations.runtimeClasspath
             .filter { it.toString().endsWith("appbundler-1.0ea.jar") }
@@ -54,7 +60,7 @@ jar {
 
 test {
     if (project.hasProperty("headless")) {
-        exclude "**/cordova/**", "**/macapplicationbundle/**", "**/windows/**"
+        exclude "**/cordova/**", "**/macapplicationbundle/**"
     }
 }
 
@@ -63,20 +69,18 @@ test {
 }
 
 gradlePlugin {
+    website = "https://www.clrz.nl"
+    vcsUrl = "https://github.com/colorizenl/gradle-application-plugin"
+
     plugins {
         applicationPlugin {
             id = "nl.colorize.gradle.application"
             implementationClass = "nl.colorize.gradle.application.ApplicationPlugin"
             displayName = "Gradle application plugin"
             description = "Build native applications for Windows, Mac, iOS, Android, and the web."
+            tags.set(["application", "mac", "macos", "application bundle", "windows", "msi", "pwa", "xcode"])
         }
     }
-}
-
-pluginBundle {
-    website = "https://www.clrz.nl"
-    vcsUrl = "https://github.com/colorizenl/gradle-application-plugin"
-    tags = ["application", "mac", "macos", "android", "windows", "application bundle", "pwa"]
 }
 
 // Gradle has a compatibility issue with Java 17 when running tests,

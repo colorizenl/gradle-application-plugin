@@ -6,10 +6,6 @@
 
 package nl.colorize.gradle.application;
 
-import nl.colorize.gradle.application.cordova.BuildCordovaTask;
-import nl.colorize.gradle.application.cordova.CordovaExt;
-import nl.colorize.gradle.application.cordova.SimulateAndroidTask;
-import nl.colorize.gradle.application.cordova.SimulateIOSTask;
 import nl.colorize.gradle.application.macapplicationbundle.CreateApplicationBundleTask;
 import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleExt;
 import nl.colorize.gradle.application.macapplicationbundle.SignApplicationBundleTask;
@@ -20,6 +16,8 @@ import nl.colorize.gradle.application.staticsite.ServeStaticSiteTask;
 import nl.colorize.gradle.application.staticsite.StaticSiteExt;
 import nl.colorize.gradle.application.windows.PackageMSITask;
 import nl.colorize.gradle.application.windows.WindowsExt;
+import nl.colorize.gradle.application.xcode.XcodeGenExt;
+import nl.colorize.gradle.application.xcode.XcodeGenTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -35,7 +33,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     public void apply(Project project) {
         configureMacApplicationBundle(project);
         configureWindows(project);
-        configureCordova(project);
+        configureXcodeGen(project);
         configurePWA(project);
         configureStaticSite(project);
     }
@@ -62,14 +60,12 @@ public class ApplicationPlugin implements Plugin<Project> {
         tasks.getByName("packageMSI").dependsOn("jar");
     }
 
-    private void configureCordova(Project project) {
+    private void configureXcodeGen(Project project) {
         ExtensionContainer ext = project.getExtensions();
-        ext.create("cordova", CordovaExt.class);
+        ext.create("xcode", XcodeGenExt.class);
 
         TaskContainer tasks = project.getTasks();
-        tasks.create("buildCordova", BuildCordovaTask.class);
-        tasks.create("simulateIOS", SimulateIOSTask.class);
-        tasks.create("simulateAndroid", SimulateAndroidTask.class);
+        tasks.create("xcodeGen", XcodeGenTask.class);
     }
 
     private void configurePWA(Project project) {

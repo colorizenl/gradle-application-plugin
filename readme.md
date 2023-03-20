@@ -1,22 +1,25 @@
 Gradle application plugin: build applications for Windows, Mac, iOS, Android, and the web
 =========================================================================================
 
-Gradle plugin that creates (native) applications for different platforms. It supports multiple
-application types, for different source technologies and target platforms:
+Gradle plugin that builds native or hybrid applications for different platforms. It supports
+multiple application types for different source technologies and target platforms:
 
 | Application type              | Supported source technology | Supported target platforms |
 |-------------------------------|-----------------------------|----------------------------|
 | Native Mac application bundle | Java                        | Mac                        |
 | Native Windows MSI            | Java                        | Windows                    |
-| Cordova app                   | Web app                     | iOS, Android, Mac          |
+| Hybrid iOS app Xcode project  | Swift, web app              | iOS                        |
 | PWA                           | Web app                     | iOS, Android, Windows      |
 | Static site                   | Web app, Markdown           | Web                        |
 
-Building mobile apps requires the development environment for the targeted platforms:
+This plugin is basically a Gradle plugin interface on top of the native toolchain for these
+platforms. That unfortunately means the plugin requires the native toolchain for each platform
+to be available in the development environment and/or build server:
 
 - Building iOS and/or Mac apps requires [Xcode](https://developer.apple.com/xcode/)
 - Building Android apps requires the [Android SDK](https://developer.android.com/sdk/index.html)
-- Building Windows installers requires [WIX Toolset](https://wixtoolset.org)
+- Generating Xcode projects requires [XcodeGen](https://github.com/yonaskolb/XcodeGen) 
+- Building Windows installers requires the [WIX Toolset](https://wixtoolset.org)
 
 Usage
 -----
@@ -25,7 +28,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 plugin to the build is done by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2023.2"
+        id "nl.colorize.gradle.application" version "2023.4"
     }
 
 Building native Mac application bundles
@@ -56,31 +59,30 @@ The following shows an example on how to define this configuration in Gradle:
         applicationCategory = "public.app-category.developer-tools"
         mainClassName = "com.example.app.Main"
         outputDir = "${buildDir}"
-        modules = ["java.base", "java.desktop", "java.logging", "java.net.http", "jdk.crypto.ec"]
         options = ["-Xmx2g"]
         startOnFirstThread = false
     }
 
 The following configuration options are available:
 
-| Name                    | Required | Description                                                       |
-|-------------------------|----------|-------------------------------------------------------------------|
-| `name`                  | yes      | Mac application name.                                             |
-| `displayName`           | no       | Optional display name, defaults to the value of `name`.           |
-| `identifier`            | yes      | Apple application identfiier, in the format "com.example.name".   | 
-| `bundleVersion`         | yes      | Application bundle version number.                                |
-| `description`           | yes      | Short description text.                                           |
-| `copyright`             | yes      | Copyright statement text.                                         |
-| `applicationCategory`   | yes      | Apple application category ID.                                    |
-| `minimumSystemVersion`  | no       | Minimum required Mac OS version number. Defaults to 10.13.        |
-| `architectures`         | no       | List of supported CPU architectures. Default is arm64 and x86_64. |
-| `mainClassName`         | yes      | Fully qualified main class name.                                  |
-| `jdkPath`               | no       | Location of JDK. Defaults to `JAVA_HOME`.                         |
-| `modules`               | no       | List of JDK modules.                                              |
-| `options`               | no       | List of command line options.                                     |
-| `startOnFirstThread`    | no       | When true, starts the application with `-XstartOnFirstThread`.    |
-| `icon`                  | yes      | Location of the `.icns` file.                                     |
-| `outputDir`             | no       | Output directory path, defaults to `build/mac`.                   |
+| Name                    | Required | Description                                                           |
+|-------------------------|----------|-----------------------------------------------------------------------|
+| `name`                  | yes      | Mac application name.                                                 |
+| `displayName`           | no       | Optional display name, defaults to the value of `name`.               |
+| `identifier`            | yes      | Apple application identfiier, in the format "com.example.name".       | 
+| `bundleVersion`         | yes      | Application bundle version number.                                    |
+| `description`           | yes      | Short description text.                                               |
+| `copyright`             | yes      | Copyright statement text.                                             |
+| `applicationCategory`   | yes      | Apple application category ID.                                        |
+| `minimumSystemVersion`  | no       | Minimum required Mac OS version number. Defaults to 10.13.            |
+| `architectures`         | no       | List of supported CPU architectures. Default is `arm64` and `x86_64`. |
+| `mainClassName`         | yes      | Fully qualified main class name.                                      |
+| `jdkPath`               | no       | Location of JDK. Defaults to `JAVA_HOME`.                             |
+| `modules`               | no       | List of JDK modules. An empty list will embed the entire JDK.         |
+| `options`               | no       | List of command line options.                                         |
+| `startOnFirstThread`    | no       | When true, starts the application with `-XstartOnFirstThread`.        |
+| `icon`                  | yes      | Location of the `.icns` file.                                         |
+| `outputDir`             | no       | Output directory path, defaults to `build/mac`.                       |
     
 - Note that, in addition to the `bundleVersion` property, there is also the concept of build
   version. This is normally the same as the bundle version, but can be manually specified for each
@@ -95,9 +97,18 @@ The following configuration options are available:
   including  application binaries, resources, and libraries, is to create a single "fat JAR" file:
 
 ```
-    jar.duplicatesStrategy = DuplicatesStrategy.WARN
-
     jar {
+        duplicatesStrategy = DuplicatesStrategy.WARN
+        exclude "**/module-info.class"
+        exclude "**/META-INF/INDEX.LIST"
+        exclude "**/META-INF/*.SF"
+        exclude "**/META-INF/*.DSA"
+        exclude "**/META-INF/*.RSA"
+        
+        manifest {
+            attributes "Main-Class": "com.example.ExampleApp"
+        }
+    
         from {
             configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
         }
@@ -152,50 +163,35 @@ are available:
 The `inherit` can help to avoid duplicated configuration. When enabled, the `windows` configuration
 will use matching configuration options defined in the `macApplicationBundle` configuration.
 
-Building Cordova applications
------------------------------
+Generating Xcode projects
+-------------------------
 
-Use the **buildCordova** task to create [Cordova](https://cordova.apache.org) applications for 
-iOS, Android, and Mac. The applications are generated from scratch, the intended usage is that the 
-Cordova applications are not added to the repository, and are instead treated like build artifacts.
+The plugin can generate [Xcode](https://en.wikipedia.org/wiki/Xcode) projects for hybrid iOS apps,
+that consist of a Swift app with a web view, that in turn displays the original web application.
+The web application files are packaged within the app, they are not loaded from an external
+server. This approach is similar to [Cordova](https://cordova.apache.org), but is more lightweight
+and assumes all required native functionality is implemented in Swift.
 
-In addition to the development environments for iOS and Android, using this task also requires
-[Cordova](https://cordova.apache.org) itself to be installed. Cordova currently *only* supports 
-Java 8, it does not support newer versions. The plugin will use the environment variable 
-`JAVA8_HOME` to locate the Java 8 JDK. This allows a newer Java version to be used for the build 
-itself, while still supporting Cordova Java 8.
+Generating the Xcode project can be done using the `xcodeGen` task. This will start
+[XcodeGen](https://github.com/yonaskolb/XcodeGen), which means that XcodeGen needs to be available
+when using this task.
 
-The plugin can be configured using the `cordova` block:
+The following configuration options are available via the `xcode` section:
 
-    cordova {
-        webAppDir = "src"
-        appId = "nl.colorize.test"
-        appName = "Example"
-        displayVersion = "1.0.0"
-        icon = "icon.png"
-        buildJson = "/shared/cordova-config/build.json"
-    } 
+| Name           | Required | Description                                                       |
+|----------------|----------|-------------------------------------------------------------------|
+| `appId`        | yes      | App ID in the form MyApp.                                         |
+| `bundleId`     | yes      | Apple bundleID in the form com.example.                           |
+| `appName`      | yes      | App display name in the form My App.                              |
+| `appVersion`   | yes      | App version number in the form 1.2.3.                             |
+| `icon`         | yes      | PNG file that will be used to generate the app icons.             |
+| `resourcesDir` | yes      | Directory to copy into the app's resources.                       |
+| `outputDir`    | no       | Directory for the Xcode project, defaults to `build/xcode`.       |
+| `xcodeGenPath` | no       | XcodeGen install location, defaults to `/usr/local/bin/xcodegen`. |
 
-The following configuration options are available:
-
-| Name             | Required | Description                                                          |
-|------------------|----------|----------------------------------------------------------------------|
-| `webAppDir`      | yes      | Directory containing the web application files.                      |
-| `outputDir`      | no       | Output directory for the generated apps, default is `build/cordova`. |
-| `platforms`      | no       | Comma-separated list of platforms, default is `ios,android,osx`.     |
-| `appId`          | yes      | Application identifier, e.g. `nl.colorize.test`.                     |
-| `appName`        | yes      | Application display name.                                            |
-| `displayVersion` | yes      | Application version in the format x.y.z.                             |
-| `icon`           | yes      | Application icon, should be a 1024x1024 PNG image.                   |
-| `buildJson`      | yes      | Location of the Cordova `build.json` configuration file.             |
-| `dist`           | no       | Build distribution type, either 'release' (default) or 'debug'.      |
-
-Note that, in addition to the `displayVersion` property, there is also the concept of build
-version. This is normally the same as the display version, but can be manually specified for each
-build by setting the `buildversion` system property. 
-
-In addition to the actual build, the plugin also adds two convenience tasks, **simulateIOS** and
-**simulateAndroid**, to start an iOS/Android simulator for the generated Cordova apps.
+Like the Mac application bundle, the `buildversion` system property can be used to set the build
+version during the build. If this system property is not present, the build version is the same
+as the app version.
 
 Building PWAs
 -------------
@@ -213,13 +209,13 @@ insert HTML that registers a
 These tasks share the same configuration via the `pwa` configuration section. The following 
 configuration options are available:
 
-| Name            | Required | Description                                                   |
-|-----------------|----------|---------------------------------------------------------------|
-| `webAppDir`     | yes      | Input directory where the original web app is located.        |
-| `outputDir`     | no       | Output directory for the generated PWA.                       |
-| `manifest`      | yes      | Location of the web app manifest JSON file.                   |
-| `serviceWorker` | no       | Location of service worker file, will use default if omitted. |
-| `cacheName`     | yes      | Name of the cache the service worker will use.                |
+| Name            | Required | Description                                                      |
+|-----------------|----------|------------------------------------------------------------------|
+| `webAppDir`     | yes      | Input directory where the original web app is located.           |
+| `outputDir`     | no       | Output directory for the generated PWA, defaults to `build/pwa`. |
+| `manifest`      | yes      | Location of the web app manifest JSON file.                      |
+| `serviceWorker` | no       | Location of service worker file, will use default if omitted.    |
+| `cacheName`     | yes      | Name of the cache the service worker will use.                   |
 
 Building a static site
 ----------------------
@@ -285,6 +281,7 @@ The plugin comes with an example application, that can be used to test the plugi
   - Run `gradle createApplicationBundle` to create a Mac application bundle.
   - Run `gradle signApplicationBundle` to sign a Mac application bundle.
   - Run `gradle packageMSI` to create a Windows MSI installer.
+  - Run `gradle xcodeGen` to generate a Xcode project for a hybrid iOS app.
   - Run `gradle generateStaticSite` to generate a website from Markdown templates.
   - Run `gradle generatePWA` to create a PWA version of the aforementioned website.
 
