@@ -53,12 +53,15 @@ public class CreateApplicationBundleTask extends DefaultTask {
         task.setShortVersion(getShortVersion(config));
         task.setCopyright(config.getCopyright());
         task.setIcon(new File(config.getIcon()));
-        task.setApplicationCategory(config.getApplicationCategory());
+        if (config.getApplicationCategory() != null) {
+            task.setApplicationCategory(config.getApplicationCategory());
+        }
         task.setMinimumSystemVersion(config.getMinimumSystemVersion());
         task.setMainClassName(config.getMainClassName());
         config.getArchitectures().forEach(arch -> task.addConfiguredArch(toArch(arch)));
         task.addConfiguredClassPath(createClassPath(config));
         getCombinedOptions(config).forEach(option -> task.addConfiguredOption(createOption(option)));
+        config.getArgs().forEach(arg -> task.addConfiguredArgument(createArg(arg)));
         if (config.getModules().isEmpty()) {
             task.addConfiguredRuntime(createRuntime(jdk));
         } else {

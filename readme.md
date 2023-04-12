@@ -24,11 +24,11 @@ to be available in the development environment and/or build server:
 Usage
 -----
 
-The plugin is available from the [Gradle plugin registry](https://plugins.gradle.org). Adding the
-plugin to the build is done by adding the following to `build.gradle`:
+The plugin is available from the [Gradle plugin registry](https://plugins.gradle.org). You can
+use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2023.4"
+        id "nl.colorize.gradle.application" version "2023.6"
     }
 
 Building native Mac application bundles
@@ -65,24 +65,25 @@ The following shows an example on how to define this configuration in Gradle:
 
 The following configuration options are available:
 
-| Name                    | Required | Description                                                           |
-|-------------------------|----------|-----------------------------------------------------------------------|
-| `name`                  | yes      | Mac application name.                                                 |
-| `displayName`           | no       | Optional display name, defaults to the value of `name`.               |
-| `identifier`            | yes      | Apple application identfiier, in the format "com.example.name".       | 
-| `bundleVersion`         | yes      | Application bundle version number.                                    |
-| `description`           | yes      | Short description text.                                               |
-| `copyright`             | yes      | Copyright statement text.                                             |
-| `applicationCategory`   | yes      | Apple application category ID.                                        |
-| `minimumSystemVersion`  | no       | Minimum required Mac OS version number. Defaults to 10.13.            |
-| `architectures`         | no       | List of supported CPU architectures. Default is `arm64` and `x86_64`. |
-| `mainClassName`         | yes      | Fully qualified main class name.                                      |
-| `jdkPath`               | no       | Location of JDK. Defaults to `JAVA_HOME`.                             |
-| `modules`               | no       | List of JDK modules. An empty list will embed the entire JDK.         |
-| `options`               | no       | List of command line options.                                         |
-| `startOnFirstThread`    | no       | When true, starts the application with `-XstartOnFirstThread`.        |
-| `icon`                  | yes      | Location of the `.icns` file.                                         |
-| `outputDir`             | no       | Output directory path, defaults to `build/mac`.                       |
+| Name                   | Required | Description                                                           |
+|------------------------|----------|-----------------------------------------------------------------------|
+| `name`                 | yes      | Mac application name.                                                 |
+| `displayName`          | no       | Optional display name, defaults to the value of `name`.               |
+| `identifier`           | yes      | Apple application identfiier, in the format "com.example.name".       | 
+| `bundleVersion`        | yes      | Application bundle version number.                                    |
+| `description`          | yes      | Short description text.                                               |
+| `copyright`            | yes      | Copyright statement text.                                             |
+| `applicationCategory`  | yes      | Apple application category ID.                                        |
+| `minimumSystemVersion` | no       | Minimum required Mac OS version number. Defaults to 10.13.            |
+| `architectures`        | no       | List of supported CPU architectures. Default is `arm64` and `x86_64`. |
+| `mainClassName`        | yes      | Fully qualified main class name.                                      |
+| `jdkPath`              | no       | Location of JDK. Defaults to `JAVA_HOME`.                             |
+| `modules`              | no       | List of JDK modules. An empty list will embed the entire JDK.         |
+| `options`              | no       | List of JVM command line options.                                     |
+| `args`                 | no       | List of command line arguments provided to the main class.            |
+| `startOnFirstThread`   | no       | When true, starts the application with `-XstartOnFirstThread`.        |
+| `icon`                 | yes      | Location of the `.icns` file.                                         |
+| `outputDir`            | no       | Output directory path, defaults to `build/mac`.                       |
     
 - Note that, in addition to the `bundleVersion` property, there is also the concept of build
   version. This is normally the same as the bundle version, but can be manually specified for each
@@ -151,6 +152,8 @@ are available:
 | `inherit`       | no       | Inherits some configuration options from Mac app configuration. |
 | `mainJarName`   | yes      | File name of the main JAR file. Defaults to application JAR.    |
 | `mainClassName` | depends  | Fully qualified main class name.                                |
+| `options`       | no       | List of JVM command line options.                               |
+| `args`          | no       | List of command line arguments provided to the main class.      |
 | `name`          | depends  | Windows application name.                                       |
 | `version`       | depends  | Windows application version number.                             |
 | `vendor`        | yes      | Vendor display name.                                            |
@@ -178,16 +181,17 @@ when using this task.
 
 The following configuration options are available via the `xcode` section:
 
-| Name           | Required | Description                                                       |
-|----------------|----------|-------------------------------------------------------------------|
-| `appId`        | yes      | App ID in the form MyApp.                                         |
-| `bundleId`     | yes      | Apple bundleID in the form com.example.                           |
-| `appName`      | yes      | App display name in the form My App.                              |
-| `appVersion`   | yes      | App version number in the form 1.2.3.                             |
-| `icon`         | yes      | PNG file that will be used to generate the app icons.             |
-| `resourcesDir` | yes      | Directory to copy into the app's resources.                       |
-| `outputDir`    | no       | Directory for the Xcode project, defaults to `build/xcode`.       |
-| `xcodeGenPath` | no       | XcodeGen install location, defaults to `/usr/local/bin/xcodegen`. |
+| Name                | Required | Description                                                       |
+|---------------------|----------|-------------------------------------------------------------------|
+| `appId`             | yes      | App ID in the form MyApp.                                         |
+| `bundleId`          | yes      | Apple bundleID in the form com.example.                           |
+| `appName`           | yes      | App display name in the form My App.                              |
+| `appVersion`        | yes      | App version number in the form 1.2.3.                             |
+| `icon`              | yes      | PNG file that will be used to generate the app icons.             |
+| `resourcesDir`      | yes      | Directory to copy into the app's resources.                       |
+| `launchScreenColor` | no       | Background color for the app's launch screen.                     |
+| `outputDir`         | no       | Directory for the Xcode project, defaults to `build/xcode`.       |
+| `xcodeGenPath`      | no       | XcodeGen install location, defaults to `/usr/local/bin/xcodegen`. |
 
 Like the Mac application bundle, the `buildversion` system property can be used to set the build
 version during the build. If this system property is not present, the build version is the same
@@ -271,8 +275,8 @@ due to a [Gradle issue](https://github.com/gradle/gradle/issues/18647). These pr
 automatically used when running from Gradle, but need to be added manually when running tests 
 from an IDE.
 
-Testing the plugin using an example application
------------------------------------------------
+Testing the plugin with an example application
+----------------------------------------------
 
 The plugin comes with an example application, that can be used to test the plugin on itself:
 
@@ -284,6 +288,10 @@ The plugin comes with an example application, that can be used to test the plugi
   - Run `gradle xcodeGen` to generate a Xcode project for a hybrid iOS app.
   - Run `gradle generateStaticSite` to generate a website from Markdown templates.
   - Run `gradle generatePWA` to create a PWA version of the aforementioned website.
+  - Running `gradle allMac` will build all example applications that are supported on Mac, which
+    is everything except the Windows MSI.
+  - Similarly, running `gradle allWindows` will build all example applications supported on
+    Windows, which is everything except the Mac application bundle and iOS app. 
 
 Note signing the Mac application requires environment variables for the signing identity. See
 the documentation section on the Mac-specific configurtion for details. 
@@ -293,14 +301,14 @@ License
 
 Copyright 2010-2023 Colorize
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+> Licensed under the Apache License, Version 2.0 (the "License");
+> you may not use this file except in compliance with the License.
+> You may obtain a copy of the License at
+>
+>    http://www.apache.org/licenses/LICENSE-2.0
+>
+> Unless required by applicable law or agreed to in writing, software
+> distributed under the License is distributed on an "AS IS" BASIS,
+> WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+> See the License for the specific language governing permissions and
+> limitations under the License.

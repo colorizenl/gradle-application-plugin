@@ -1,3 +1,3 @@
 # Example
 
-![Colorize logo](../../../resources/icon.png)
+![Colorize logo](images/icon.png)

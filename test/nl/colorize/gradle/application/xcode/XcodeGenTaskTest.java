@@ -6,6 +6,7 @@
 
 package nl.colorize.gradle.application.xcode;
 
+import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -36,16 +37,27 @@ class XcodeGenTaskTest {
 
         String expected = """
             name: Example App
+            options:
+              createIntermediateGroups: true
             targets:
               example:
                 type: application
                 platform: iOS
-                deploymentTarget: "12.0"
-                sources: [example]
+                deploymentTarget: "14.0"
+                sources:
+                  - example
+                  - path: HybridResources
+                    type: folder
+                info:
+                  path: "example/Info.plist"
+                  properties:
+                    CFBundleDisplayName: "Example App"
+                    UILaunchScreen:
+                      UIColorName: #000000
                 settings:
                   base:
-                    INFOPLIST_FILE: example/Info.plist
                     PRODUCT_BUNDLE_IDENTIFIER: com.example
+                    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
             """;
 
         assertEquals(expected, Files.readString(specFile.toPath(), UTF_8));
@@ -53,12 +65,15 @@ class XcodeGenTaskTest {
 
     @Test
     void generateProjectStructure(@TempDir File tempDir) throws IOException {
+        AppHelper.mkdir(new File(tempDir, "resources"));
+
         XcodeGenExt config = new XcodeGenExt();
         config.setAppId("example");
         config.setBundleId("com.example");
         config.setAppName("Example App");
         config.setAppVersion("1.0");
-        config.setIcon("resources/icon.png");
+        config.setIcon(new File("resources/icon.png").getAbsolutePath());
+        config.setResourcesDir("resources");
 
         XcodeGenTask task = prepareTask(tempDir);
         task.generateProjectStructure(config, tempDir);

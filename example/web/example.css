@@ -1,0 +1,14 @@
+html {
+    background-color: #FFFFFF;
+}
+
+body {
+    background-color: #EBEBEB;
+    color: #323232;
+    padding: 30px;
+    margin: 30px 20px 30px 20px;
+}
+
+img {
+    max-width: 200px;
+}

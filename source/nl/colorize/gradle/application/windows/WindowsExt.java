@@ -12,6 +12,8 @@ import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleE
 import org.gradle.api.Project;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 @Data
 public class WindowsExt {
@@ -19,6 +21,8 @@ public class WindowsExt {
     private boolean inherit;
     private String mainJarName;
     private String mainClassName;
+    private List<String> options;
+    private List<String> args;
     private String name;
     private String version;
     private String vendor;
@@ -30,6 +34,8 @@ public class WindowsExt {
 
     public WindowsExt() {
         this.inherit = false;
+        this.options = Collections.emptyList();
+        this.args = Collections.emptyList();
         this.outputDir = "windows";
     }
 

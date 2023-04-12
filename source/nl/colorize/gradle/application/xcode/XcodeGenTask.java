@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Map;
 
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.KEY_INTERPOLATION;
@@ -67,11 +66,10 @@ public class XcodeGenTask extends DefaultTask {
     }
 
     protected void generateProjectStructure(XcodeGenExt ext, File outputDir) throws IOException {
+        File appDir = AppHelper.mkdir(new File(outputDir, ext.getAppId()));
+
         File resourcesDir = AppHelper.mkdir(new File(outputDir, "HybridResources"));
         copyResources(ext, resourcesDir);
-
-        File appDir = AppHelper.mkdir(new File(outputDir, ext.getAppId()));
-        generatePlist(ext, new File(appDir, "Info.plist"));
 
         String swiftCode = AppHelper.loadResourceFile("App.swift");
         Files.writeString(new File(appDir, "App.swift").toPath(), swiftCode, UTF_8);
@@ -84,19 +82,11 @@ public class XcodeGenTask extends DefaultTask {
         generateIconSet(icon, iconDir);
     }
 
-    private void generatePlist(XcodeGenExt ext, File outputFile) throws IOException {
-        String plist = AppHelper.loadResourceFile("Info.plist", Map.of(
-            "{{displayName}}", ext.getAppName(),
-            "{{appVersion}}", ext.getAppVersion(),
-            "{{buildVersion}}", ext.getBuildVersion()
-        ));
-
-        Files.writeString(outputFile.toPath(), plist, UTF_8);
-    }
-
     protected void generateSpecFile(XcodeGenExt ext, File specFile) {
         try (PrintWriter writer = new PrintWriter(specFile, UTF_8)) {
             writer.println("name: " + ext.getAppName());
+            writer.println("options:");
+            writer.println("  createIntermediateGroups: true");
             writer.println("targets:");
             writer.println("  " + ext.getAppId() + ":");
             writer.println("    type: application");
@@ -105,11 +95,17 @@ public class XcodeGenTask extends DefaultTask {
             writer.println("    sources:");
             writer.println("      - " + ext.getAppId());
             writer.println("      - path: HybridResources");
-            writer.println("        type: group");
+            writer.println("        type: folder");
+            writer.println("    info:");
+            writer.println("      path: \"" + ext.getAppId() + "/Info.plist\"");
+            writer.println("      properties:");
+            writer.println("        CFBundleDisplayName: \"" + ext.getAppName() + "\"");
+            writer.println("        UILaunchScreen:");
+            writer.println("          UIColorName: " + ext.getLaunchScreenColor());
             writer.println("    settings:");
             writer.println("      base:");
             writer.println("        PRODUCT_BUNDLE_IDENTIFIER: " + ext.getBundleId());
-            writer.println("        INFOPLIST_FILE: " + ext.getAppId() + "/Info.plist");
+            writer.println("        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon");
         } catch (IOException e) {
             throw new RuntimeException("Unable to generate XcodeGen spec file", e);
         }

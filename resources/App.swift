@@ -10,6 +10,7 @@ struct Test_AppApp: App {
     var body: some Scene {
         WindowGroup {
             HybridWebView()
+                .ignoresSafeArea()
         }
     }
 }
@@ -30,9 +31,9 @@ struct HybridWebView: UIViewRepresentable {
 
     func updateUIView(_ webView: WKWebView, context: Context) {
         DispatchQueue.main.async {
-            let url = Bundle.main.url(forResource: "index", withExtension: "html")!
+            let path = Bundle.main.path(forResource: "HybridResources/index", ofType: "html")!
+            let url = URL(fileURLWithPath: path)
             webView.loadFileURL(url, allowingReadAccessTo: url)
-            webView.load(URLRequest(url: url))
         }
     }
 }

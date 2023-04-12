@@ -12,6 +12,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PackageMSITask extends DefaultTask {
@@ -35,7 +36,7 @@ public class PackageMSITask extends DefaultTask {
     }
 
     protected List<String> buildPackageCommand(WindowsExt config) {
-        return List.of(
+        List<String> baseCommand = List.of(
             "jpackage",
             "--type", "msi",
             "--input", AppHelper.getLibsDir(getProject()).getAbsolutePath(),
@@ -52,5 +53,20 @@ public class PackageMSITask extends DefaultTask {
             "--win-shortcut",
             "--dest", config.getOutputDir(getProject()).getAbsolutePath()
         );
+
+        List<String> command = new ArrayList<>();
+        command.addAll(baseCommand);
+
+        for (String option : config.getOptions()) {
+            command.add("--java-options");
+            command.add(option);
+        }
+
+        for (String arg : config.getArgs()) {
+            command.add("--arguments");
+            command.add(arg);
+        }
+
+        return command;
     }
 }

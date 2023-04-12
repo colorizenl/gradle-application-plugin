@@ -12,6 +12,7 @@ import org.gradle.api.Project;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class MacApplicationBundleExt {
     private String mainClassName;
     private List<String> modules;
     private List<String> options;
+    private List<String> args;
     private boolean startOnFirstThread;
     private String jdkPath;
     private String outputDir;
@@ -62,12 +64,12 @@ public class MacApplicationBundleExt {
         copyright = "Copyright " + new SimpleDateFormat("yyyy").format(new Date());
         bundleVersion = "1.0";
         
-        applicationCategory = "public.app-category.developer-tools";
         minimumSystemVersion = "10.13";
         architectures = List.of("arm64", "x86_64");
         
         modules = DEFAULT_MODULES;
         options = List.of("-Xmx2g");
+        args = Collections.emptyList();
         startOnFirstThread = false;
 
         jdkPath = AppHelper.getEnvironmentVariable("JAVA_HOME");

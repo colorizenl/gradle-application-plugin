@@ -19,12 +19,14 @@ public class XcodeGenExt {
     private String icon;
     private String deploymentTarget;
     private String resourcesDir;
+    private String launchScreenColor;
     private String outputDir;
     private String xcodeGenPath;
 
     public XcodeGenExt() {
         this.outputDir = "xcode";
         this.deploymentTarget = "14.0";
+        this.launchScreenColor = "#000000";
         this.xcodeGenPath = "/usr/local/bin/xcodegen";
     }
 
