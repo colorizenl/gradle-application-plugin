@@ -113,7 +113,11 @@ public class CreateApplicationBundleTask extends DefaultTask {
         JLink jLink = new JLink();
         jLink.setRuntime(jdk.getAbsolutePath());
 
-        for (String module : config.getModules()) {
+        List<String> combinedModules = new ArrayList<>();
+        combinedModules.addAll(config.getModules());
+        combinedModules.addAll(config.getAdditionalModules());
+
+        for (String module : combinedModules) {
             JMod jModule = new JMod();
             jModule.setName(module);
             jLink.addConfiguredJMod(jModule);

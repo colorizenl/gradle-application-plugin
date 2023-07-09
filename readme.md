@@ -1,4 +1,4 @@
-Gradle application plugin: build applications for Windows, Mac, iOS, Android, and the web
+Gradle application plugin: Build applications for Windows, Mac, iOS, Android, and the web
 =========================================================================================
 
 Gradle plugin that builds native or hybrid applications for different platforms. It supports
@@ -28,7 +28,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2023.6"
+        id "nl.colorize.gradle.application" version "2023.7"
     }
 
 Building native Mac application bundles
@@ -79,6 +79,7 @@ The following configuration options are available:
 | `mainClassName`        | yes      | Fully qualified main class name.                                      |
 | `jdkPath`              | no       | Location of JDK. Defaults to `JAVA_HOME`.                             |
 | `modules`              | no       | List of JDK modules. An empty list will embed the entire JDK.         |
+| `additionalModules`    | no       | List of JDK modules, added without overriding the default `modules`.  | 
 | `options`              | no       | List of JVM command line options.                                     |
 | `args`                 | no       | List of command line arguments provided to the main class.            |
 | `startOnFirstThread`   | no       | When true, starts the application with `-XstartOnFirstThread`.        |

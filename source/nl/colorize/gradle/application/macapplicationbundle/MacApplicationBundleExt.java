@@ -34,6 +34,7 @@ public class MacApplicationBundleExt {
     private String contentDir;
     private String mainClassName;
     private List<String> modules;
+    private List<String> additionalModules;
     private List<String> options;
     private List<String> args;
     private boolean startOnFirstThread;
@@ -68,6 +69,7 @@ public class MacApplicationBundleExt {
         architectures = List.of("arm64", "x86_64");
         
         modules = DEFAULT_MODULES;
+        additionalModules = Collections.emptyList();
         options = List.of("-Xmx2g");
         args = Collections.emptyList();
         startOnFirstThread = false;
