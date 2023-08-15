@@ -103,9 +103,13 @@ public class XcodeGenTask extends DefaultTask {
             writer.println("        UILaunchScreen:");
             writer.println("          UIColorName: " + ext.getLaunchScreenColor());
             writer.println("    settings:");
-            writer.println("      base:");
-            writer.println("        PRODUCT_BUNDLE_IDENTIFIER: " + ext.getBundleId());
-            writer.println("        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon");
+            writer.println("      PRODUCT_BUNDLE_IDENTIFIER: " + ext.getBundleId());
+            writer.println("      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon");
+            writer.println("      TARGETED_DEVICE_FAMILY: 1");
+            writer.println("      PRODUCT_NAME: \"" + ext.getAppName() + "\"");
+            writer.println("      INFOPLIST_KEY_CFBundleDisplayName: \"" + ext.getAppName() + "\"");
+            writer.println("      MARKETING_VERSION: \"" + ext.getAppVersion() + "\"");
+            writer.println("      CURRENT_PROJECT_VERSION: \"" + ext.getBuildVersion() + "\"");
         } catch (IOException e) {
             throw new RuntimeException("Unable to generate XcodeGen spec file", e);
         }

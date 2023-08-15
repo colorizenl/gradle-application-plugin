@@ -55,11 +55,15 @@ class XcodeGenTaskTest {
                     UILaunchScreen:
                       UIColorName: #000000
                 settings:
-                  base:
-                    PRODUCT_BUNDLE_IDENTIFIER: com.example
-                    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+                  PRODUCT_BUNDLE_IDENTIFIER: com.example
+                  ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+                  TARGETED_DEVICE_FAMILY: 1
+                  PRODUCT_NAME: "Example App"
+                  INFOPLIST_KEY_CFBundleDisplayName: "Example App"
+                  MARKETING_VERSION: "1.0"
+                  CURRENT_PROJECT_VERSION: "1.0"
             """;
-
+            
         assertEquals(expected, Files.readString(specFile.toPath(), UTF_8));
     }
 
