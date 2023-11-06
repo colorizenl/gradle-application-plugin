@@ -14,8 +14,10 @@ import nl.colorize.gradle.application.pwa.PwaExt;
 import nl.colorize.gradle.application.staticsite.GenerateStaticSiteTask;
 import nl.colorize.gradle.application.staticsite.ServeStaticSiteTask;
 import nl.colorize.gradle.application.staticsite.StaticSiteExt;
-import nl.colorize.gradle.application.windows.PackageMSITask;
-import nl.colorize.gradle.application.windows.WindowsExt;
+import nl.colorize.gradle.application.windowsexe.PackageWindowsStandaloneTask;
+import nl.colorize.gradle.application.windowsexe.WindowsStandaloneExt;
+import nl.colorize.gradle.application.windowsmsi.PackageMSITask;
+import nl.colorize.gradle.application.windowsmsi.WindowsInstallerExt;
 import nl.colorize.gradle.application.xcode.XcodeGenExt;
 import nl.colorize.gradle.application.xcode.XcodeGenTask;
 import org.gradle.api.Plugin;
@@ -52,12 +54,15 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     private void configureWindows(Project project) {
         ExtensionContainer ext = project.getExtensions();
-        ext.create("windows", WindowsExt.class);
+        ext.create("msi", WindowsInstallerExt.class);
+        ext.create("exe", WindowsStandaloneExt.class);
 
         TaskContainer tasks = project.getTasks();
         tasks.create("packageMSI", PackageMSITask.class);
+        tasks.create("packageEXE", PackageWindowsStandaloneTask.class);
 
         tasks.getByName("packageMSI").dependsOn("jar");
+        tasks.getByName("packageEXE").dependsOn("jar");
     }
 
     private void configureXcodeGen(Project project) {

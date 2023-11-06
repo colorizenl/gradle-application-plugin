@@ -6,13 +6,13 @@ buildscript {
     }
     
     dependencies {
-        classpath "com.gradle.publish:plugin-publish-plugin:1.2.0"
+        classpath "com.gradle.publish:plugin-publish-plugin:1.2.1"
     }
 }
 
 plugins {
-    id "io.freefair.lombok" version "8.2.2"
-    id "com.github.ben-manes.versions" version "0.47.0"
+    id "io.freefair.lombok" version "8.4"
+    id "com.github.ben-manes.versions" version "0.49.0"
 }
 
 apply plugin: "java-gradle-plugin"
@@ -20,13 +20,16 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2023.8"
-sourceCompatibility = "17"
-targetCompatibility = "17"
+version = "2023.10.1"
 compileJava.options.encoding = "UTF-8"
-sourceSets.main.java.srcDirs = ["source"]
-sourceSets.main.resources.srcDirs = ["resources"]
-sourceSets.test.java.srcDirs = ["test"]
+
+java {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+    sourceSets.main.java.srcDirs = ["source"]
+    sourceSets.main.resources.srcDirs = ["resources"]
+    sourceSets.test.java.srcDirs = ["test"]
+}
 
 repositories {
     mavenCentral()
@@ -36,7 +39,7 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation files("lib/appbundler-1.0ea.jar")
-    implementation "org.jsoup:jsoup:1.16.1"
+    implementation "org.jsoup:jsoup:1.16.2"
     implementation "org.commonmark:commonmark:0.21.0"
     implementation "org.nanohttpd:nanohttpd-webserver:2.3.1"
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.0"
@@ -60,12 +63,20 @@ jar {
 
 test {
     if (project.hasProperty("headless")) {
-        exclude "**/cordova/**", "**/macapplicationbundle/**"
+        exclude "**/macapplicationbundle/**"
     }
 }
 
 test {
     useJUnitPlatform()
+}
+
+jacocoTestReport {
+    afterEvaluate {
+        classDirectories.from = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ["**/**Ext**"])
+        })
+    }
 }
 
 gradlePlugin {
@@ -77,8 +88,8 @@ gradlePlugin {
             id = "nl.colorize.gradle.application"
             implementationClass = "nl.colorize.gradle.application.ApplicationPlugin"
             displayName = "Gradle application plugin"
-            description = "Build native applications for Windows, Mac, iOS, Android, and the web."
-            tags.set(["application", "mac", "macos", "application bundle", "windows", "msi", "pwa", "xcode"])
+            description = "Build native applications for Windows, Mac, iOS, Android, and web."
+            tags.set(["application", "mac", "macos", "application bundle", "windows", "msi", "exe", "pwa", "xcode"])
         }
     }
 }

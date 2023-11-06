@@ -8,13 +8,14 @@ package nl.colorize.gradle.application.staticsite;
 
 import lombok.Data;
 import nl.colorize.gradle.application.AppHelper;
+import nl.colorize.gradle.application.Validatable;
 import org.gradle.api.Project;
 
 import java.io.File;
 import java.util.List;
 
 @Data
-public class StaticSiteExt {
+public class StaticSiteExt implements Validatable {
 
     private String contentDir;
     private String outputDir;
@@ -35,5 +36,10 @@ public class StaticSiteExt {
 
     public File getOutputDir(Project project) {
         return AppHelper.getOutputDir(project, outputDir);
+    }
+
+    @Override
+    public void validate() {
+        // All properties are optional.
     }
 }

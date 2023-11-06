@@ -8,6 +8,7 @@ package nl.colorize.gradle.application.macapplicationbundle;
 
 import lombok.Data;
 import nl.colorize.gradle.application.AppHelper;
+import nl.colorize.gradle.application.Validatable;
 import org.gradle.api.Project;
 
 import java.io.File;
@@ -17,7 +18,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class MacApplicationBundleExt {
+public class MacApplicationBundleExt implements Validatable {
 
     private String name;
     private String displayName;
@@ -82,6 +83,7 @@ public class MacApplicationBundleExt {
         return AppHelper.getOutputDir(project, outputDir);
     }
 
+    @Override
     public void validate() {
         AppHelper.check(name != null, "Missing macApplicationBundle.name");
         AppHelper.check(identifier != null, "Missing macApplicationBundle.identifier");

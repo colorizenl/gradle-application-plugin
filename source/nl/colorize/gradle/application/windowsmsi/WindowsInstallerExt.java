@@ -4,10 +4,11 @@
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
-package nl.colorize.gradle.application.windows;
+package nl.colorize.gradle.application.windowsmsi;
 
 import lombok.Data;
 import nl.colorize.gradle.application.AppHelper;
+import nl.colorize.gradle.application.Validatable;
 import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleExt;
 import org.gradle.api.Project;
 
@@ -16,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Data
-public class WindowsExt {
+public class WindowsInstallerExt implements Validatable {
 
     private boolean inherit;
     private String mainJarName;
@@ -32,11 +33,11 @@ public class WindowsExt {
     private String uuid;
     private String outputDir;
 
-    public WindowsExt() {
+    public WindowsInstallerExt() {
         this.inherit = false;
         this.options = Collections.emptyList();
         this.args = Collections.emptyList();
-        this.outputDir = "windows";
+        this.outputDir = "windows-msi";
     }
 
     public String getMainJarName(Project project) {
@@ -50,18 +51,17 @@ public class WindowsExt {
         return AppHelper.getOutputDir(project, outputDir);
     }
 
+    @Override
     public void validate() {
-        AppHelper.check(mainJarName != null, "Missing windows.mainJarName");
-        AppHelper.check(mainClassName != null, "Missing windows.mainClassName");
-        AppHelper.check(name != null, "Missing windows.name");
-        AppHelper.check(version != null, "Missing windows.version");
-        AppHelper.check(vendor != null, "Missing windows.vendor");
-        AppHelper.check(description != null, "Missing windows.description");
-        AppHelper.check(copyright != null, "Missing windows.copyright");
-        AppHelper.check(icon != null, "Missing windows.icon");
-        AppHelper.check(uuid != null, "Missing windows.uuid");
-
+        AppHelper.check(mainClassName != null, "Missing msi.mainClassName");
+        AppHelper.check(name != null, "Missing msi.name");
+        AppHelper.check(version != null, "Missing msi.version");
+        AppHelper.check(vendor != null, "Missing msi.vendor");
+        AppHelper.check(description != null, "Missing msi.description");
+        AppHelper.check(copyright != null, "Missing msi.copyright");
+        AppHelper.check(icon != null, "Missing msi.icon");
         AppHelper.check(icon.endsWith(".ico"), "Windows icon must be a .ico file");
+        AppHelper.check(uuid != null, "Missing msi.uuid");
     }
 
     public void inherit(MacApplicationBundleExt macConfig) {

@@ -22,8 +22,15 @@ compileJava.options.encoding = "UTF-8"
 sourceSets.main.java.srcDirs = ["source"]
 sourceSets.main.resources.srcDirs = ["../resources"]
 sourceSets.test.java.srcDirs = ["source"]
-jar.archiveFileName = "example.jar"
-jar.duplicatesStrategy = DuplicatesStrategy.WARN
+
+jar {
+    archiveFileName = "example.jar"
+    duplicatesStrategy = DuplicatesStrategy.WARN
+
+    manifest {
+        attributes "Main-Class": "com.example.ExampleApp"
+    }
+}
 
 macApplicationBundle {
     name = "Example"
@@ -36,12 +43,19 @@ macApplicationBundle {
     mainClassName = "com.example.ExampleApp"
 }
 
-windows {
+msi {
     inherit = true
     mainJarName = "example.jar"
     vendor = "Colorize"
     icon = "../resources/icon.ico"
     uuid = "b9112b5f-2340-4541-8883-6abd3c9c8780"
+}
+
+exe {
+    inherit = true
+    mainJarName = "example.jar"
+    icon = "${projectDir}/../resources/icon.ico"
+    supportURL = "https://www.colorize.nl"
 }
 
 xcode {
@@ -73,8 +87,11 @@ generateStaticSite.doLast {
 generatePWA.dependsOn generateStaticSite
 xcodeGen.dependsOn generateStaticSite
 
-task allMac(dependsOn: ["signApplicationBundle", "generateStaticSite", "generatePWA", "xcodeGen"]) {
+task allMac(dependsOn: ["signApplicationBundle", "xcodeGen", "packageEXE", "generateStaticSite", "generatePWA"]) {
 }
 
-task allWindows(dependsOn: ["packageMSI", "generateStaticSite", "generatePWA"]) {
+task allWindows(dependsOn: ["packageMSI", "packageEXE", "generateStaticSite", "generatePWA"]) {
+}
+
+task allLinux(dependsOn: ["generateStaticSite", "generatePWA"]) {
 }

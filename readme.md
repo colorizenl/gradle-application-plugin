@@ -1,25 +1,38 @@
-Gradle application plugin: Build applications for Windows, Mac, iOS, Android, and the web
-=========================================================================================
+Gradle application plugin: Build applications for Windows, Mac, iOS, Android, and web
+=====================================================================================
 
 Gradle plugin that builds native or hybrid applications for different platforms. It supports
 multiple application types for different source technologies and target platforms:
 
-| Application type              | Supported source technology | Supported target platforms |
-|-------------------------------|-----------------------------|----------------------------|
-| Native Mac application bundle | Java                        | Mac                        |
-| Native Windows MSI            | Java                        | Windows                    |
-| Hybrid iOS app Xcode project  | Swift, web app              | iOS                        |
-| PWA                           | Web app                     | iOS, Android, Windows      |
-| Static site                   | Web app, Markdown           | Web                        |
+| Application type              | Source technology | Target platforms      |
+|-------------------------------|-------------------|-----------------------|
+| Native Mac application bundle | Java              | Mac                   |
+| Native Windows MSI            | Java              | Windows               |
+| Native Windows EXE            | Java              | Windows               |
+| Hybrid iOS app Xcode project  | Swift, web app    | iOS                   |
+| PWA                           | Web app           | iOS, Android, Windows |
+| Static site                   | Web app, Markdown | Web                   |
+
+This allows you to distribute the same application to multiple platforms, without having to
+maintain platform-specific code.
+
+![Example of building native apps for multiple platforms](example/resources/example-gallery.png)
+
+System requirements
+-------------------
 
 This plugin is basically a Gradle plugin interface on top of the native toolchain for these
 platforms. That unfortunately means the plugin requires the native toolchain for each platform
-to be available in the development environment and/or build server:
+to be available in the build environment:
 
-- Building iOS and/or Mac apps requires [Xcode](https://developer.apple.com/xcode/)
-- Building Android apps requires the [Android SDK](https://developer.android.com/sdk/index.html)
-- Generating Xcode projects requires [XcodeGen](https://github.com/yonaskolb/XcodeGen) 
-- Building Windows installers requires the [WIX Toolset](https://wixtoolset.org)
+| Target platform | Build platform(s)   | Requires                                                    |
+|-----------------|---------------------|-------------------------------------------------------------|
+| Windows MSI     | Windows             | [WIX Toolset](https://wixtoolset.org)                       |
+| Windows EXE     | Windows, Mac, Linux | [Launch4j](https://launch4j.sourceforge.net)                |
+| Mac             | Mac                 | [Xcode](https://developer.apple.com/xcode/)                 |
+| iOS             | Mac                 | [Xcode](https://developer.apple.com/xcode/)                 |
+|                 |                     | [XcodeGen](https://github.com/yonaskolb/XcodeGen)           |
+| Android         | Mac                 | [Android SDK](https://developer.android.com/sdk/index.html) |
 
 Usage
 -----
@@ -28,7 +41,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2023.8"
+        id "nl.colorize.gradle.application" version "2023.10.1"
     }
 
 Building native Mac application bundles
@@ -136,22 +149,21 @@ into the build file. It is better to define them in the Gradle properties file a
 Building native Windows MSI installers
 --------------------------------------
 
-Older versions of the plugin used [Launch4j](https://launch4j.sourceforge.net) to generate `.exe`
-files. This has been changed to use `jpackage` to generate MSI installers, so that applications
-can be distributed via the Microsoft Store. The downside is that `jpackage` requires the
+Uses `jpackage` to generate MSI installers, so that applications can be distributed via the
+Microsoft Store. The downside is that using `jpackage` requires the
 [WIX Toolset](https://wixtoolset.org), which only supports Windows.
 
-First, make sure the build produces a "far JAR", using the same instructions as described for
-the native Mac app. The **packageWindows** task can then be used to create a MSI installer that
+First, make sure the build produces a "fat JAR", using the same instructions as described for
+the native Mac app. The **packageMSI** task can then be used to create a MSI installer that
 includes both the fat JAR and the Java runtime. 
 
-The plugin can be configured using the `windows` section. The following configuration options
+The plugin can be configured using the `msi` section. The following configuration options
 are available:
 
 | Name            | Required | Description                                                     |
 |-----------------|----------|-----------------------------------------------------------------|
 | `inherit`       | no       | Inherits some configuration options from Mac app configuration. |
-| `mainJarName`   | yes      | File name of the main JAR file. Defaults to application JAR.    |
+| `mainJarName`   | no       | File name of the main JAR file. Defaults to application JAR.    |
 | `mainClassName` | depends  | Fully qualified main class name.                                |
 | `options`       | no       | List of JVM command line options.                               |
 | `args`          | no       | List of command line arguments provided to the main class.      |
@@ -162,10 +174,46 @@ are available:
 | `copyright`     | depends  | Copyright statement text.                                       |
 | `icon`          | yes      | Location of `.ico` file.                                        |
 | `uuid`          | yes      | Windows update UUID, must remain the same across versions.      |
-| `outputDir`     | no       | Output directory path, defaults to `build/windows`.             |
+| `outputDir`     | no       | Output directory path, defaults to `build/windows-msi`.         |
 
-The `inherit` can help to avoid duplicated configuration. When enabled, the `windows` configuration
-will use matching configuration options defined in the `macApplicationBundle` configuration.
+The `inherit` option can help to avoid duplicated configuration. When enabled, the `msi`
+configuration will use matching configuration options defined in the `macApplicationBundle`
+configuration.
+
+Building a native Windows EXE 
+-----------------------------
+
+Creates a native Windows `.exe` file, then packages that file with both the application and an
+embedded Java runtime to create a Windows application. This is an alternative for creating Windows
+MSI installers, which is less portable but has the benefit that it supports non-Windows build
+platforms. The `.exe` file is created using [Launch4j](https://launch4j.sourceforge.net).
+
+The **packageEXE** task will create both the `.exe` file and the Windows application. It can be
+configured using the `exe` section:
+
+| Name          | Required | Description                                                     |
+|---------------|----------|-----------------------------------------------------------------|
+| `inherit`     | no       | Inherits some configuration options from Mac app configuration. |
+| `mainJarName` | no       | File name of the main JAR file. Defaults to application JAR.    |
+| `args`        | no       | List of command line arguments provided to the main class.      |
+| `name`        | depends  | Windows application name.                                       |
+| `version`     | depends  | Windows application version number.                             |
+| `icon`        | yes      | Location of `.ico` file.                                        |
+| `supportURL`  | yes      | Shown in case of application launch errors.                     |
+| `memory`      | no       | Maximum application memory in megabytes. Defaults to 2048 MB.   |
+| `exeFileName` | no       | File name for `.exe` file. Based on JAR file name if omitted.   |
+
+The `inherit` option can help to avoid duplicated configuration. When enabled, the `exe`
+configuration will use matching configuration options defined in the `macApplicationBundle`
+configuration.
+
+The Windows application contain an embedded Java runtime, which is located using the 
+`EMBEDDED_WINDOWS_JAVA` environment variable. This directory needs to contain a subdirectory
+named `java`, which will be embedded in the Windows application. The configuration intentionally
+does *not* use `JAVA_HOME`, so that the Windows application can also be created on non-Windows
+build platforms.
+
+The location of Launch4j can be specified using the `LAUNCH4J_HOME` environment variable.
 
 Generating Xcode projects
 -------------------------
@@ -182,17 +230,18 @@ when using this task.
 
 The following configuration options are available via the `xcode` section:
 
-| Name                | Required | Description                                                       |
-|---------------------|----------|-------------------------------------------------------------------|
-| `appId`             | yes      | App ID in the form MyApp.                                         |
-| `bundleId`          | yes      | Apple bundleID in the form com.example.                           |
-| `appName`           | yes      | App display name in the form My App.                              |
-| `appVersion`        | yes      | App version number in the form 1.2.3.                             |
-| `icon`              | yes      | PNG file that will be used to generate the app icons.             |
-| `resourcesDir`      | yes      | Directory to copy into the app's resources.                       |
-| `launchScreenColor` | no       | Background color for the app's launch screen.                     |
-| `outputDir`         | no       | Directory for the Xcode project, defaults to `build/xcode`.       |
-| `xcodeGenPath`      | no       | XcodeGen install location, defaults to `/usr/local/bin/xcodegen`. |
+| Name                  | Required | Description                                                       |
+|-----------------------|----------|-------------------------------------------------------------------|
+| `appId`               | yes      | App ID in the form MyApp.                                         |
+| `bundleId`            | yes      | Apple bundleID in the form com.example.                           |
+| `appName`             | yes      | App display name in the form My App.                              |
+| `appVersion`          | yes      | App version number in the form 1.2.3.                             |
+| `icon`                | yes      | PNG file that will be used to generate the app icons.             |
+| `iconBackgroundColor` | no       | Color used to replace the icon alpha channel, e.g. #000000.       |
+| `resourcesDir`        | yes      | Directory to copy into the app's resources.                       |
+| `launchScreenColor`   | no       | Background color for the app's launch screen.                     |
+| `outputDir`           | no       | Directory for the Xcode project, defaults to `build/xcode`.       |
+| `xcodeGenPath`        | no       | XcodeGen install location, defaults to `/usr/local/bin/xcodegen`. |
 
 Like the Mac application bundle, the `buildversion` system property can be used to set the build
 version during the build. If this system property is not present, the build version is the same
@@ -276,8 +325,8 @@ due to a [Gradle issue](https://github.com/gradle/gradle/issues/18647). These pr
 automatically used when running from Gradle, but need to be added manually when running tests 
 from an IDE.
 
-Testing the plugin with an example application
-----------------------------------------------
+Testing the plugin with the example application
+-----------------------------------------------
 
 The plugin comes with an example application, that can be used to test the plugin on itself:
 
@@ -289,13 +338,11 @@ The plugin comes with an example application, that can be used to test the plugi
   - Run `gradle xcodeGen` to generate a Xcode project for a hybrid iOS app.
   - Run `gradle generateStaticSite` to generate a website from Markdown templates.
   - Run `gradle generatePWA` to create a PWA version of the aforementioned website.
-  - Running `gradle allMac` will build all example applications that are supported on Mac, which
-    is everything except the Windows MSI.
-  - Similarly, running `gradle allWindows` will build all example applications supported on
-    Windows, which is everything except the Mac application bundle and iOS app. 
-
-Note signing the Mac application requires environment variables for the signing identity. See
-the documentation section on the Mac-specific configurtion for details. 
+  - The shorthand tasks `gradle allMac`, `gradle allWindows`, and `gradle allLinux` can be used
+    to build all application types that are supported on that platform.
+    
+Building the example application uses the same system requirements and environment variables as
+the plugin itself. Refer to the documentation for each application type for details.
   
 License
 -------

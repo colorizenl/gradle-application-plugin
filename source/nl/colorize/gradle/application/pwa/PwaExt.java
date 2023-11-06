@@ -8,12 +8,13 @@ package nl.colorize.gradle.application.pwa;
 
 import lombok.Data;
 import nl.colorize.gradle.application.AppHelper;
+import nl.colorize.gradle.application.Validatable;
 import org.gradle.api.Project;
 
 import java.io.File;
 
 @Data
-public class PwaExt {
+public class PwaExt implements Validatable {
 
     private String webAppDir;
     private String outputDir;
@@ -29,6 +30,7 @@ public class PwaExt {
         return AppHelper.getOutputDir(project, outputDir);
     }
 
+    @Override
     public void validate() {
         AppHelper.check(webAppDir != null, "Missing pwa.webAppDir");
         AppHelper.check(manifest != null, "Missing pwa.manifest");

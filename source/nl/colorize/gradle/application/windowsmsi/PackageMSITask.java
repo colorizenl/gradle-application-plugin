@@ -4,7 +4,7 @@
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
-package nl.colorize.gradle.application.windows;
+package nl.colorize.gradle.application.windowsmsi;
 
 import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleExt;
@@ -22,7 +22,7 @@ public class PackageMSITask extends DefaultTask {
         AppHelper.requireWindows();
 
         ExtensionContainer ext = getProject().getExtensions();
-        WindowsExt config = ext.getByType(WindowsExt.class);
+        WindowsInstallerExt config = ext.getByType(WindowsInstallerExt.class);
         MacApplicationBundleExt macConfig = ext.getByType(MacApplicationBundleExt.class);
 
         if (config.isInherit()) {
@@ -35,7 +35,7 @@ public class PackageMSITask extends DefaultTask {
         getProject().exec(exec -> exec.commandLine(packageCommand));
     }
 
-    protected List<String> buildPackageCommand(WindowsExt config) {
+    protected List<String> buildPackageCommand(WindowsInstallerExt config) {
         List<String> baseCommand = List.of(
             "jpackage",
             "--type", "msi",

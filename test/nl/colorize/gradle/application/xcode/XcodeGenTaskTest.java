@@ -52,18 +52,25 @@ class XcodeGenTaskTest {
                   path: "example/Info.plist"
                   properties:
                     CFBundleDisplayName: "Example App"
+                    CFBundleShortVersionString: $(MARKETING_VERSION)
+                    CFBundleVersion: $(CURRENT_PROJECT_VERSION)
                     UILaunchScreen:
                       UIColorName: #000000
+                    UISupportedInterfaceOrientations~ipad:
+                      - UIInterfaceOrientationPortrait
+                      - UIInterfaceOrientationPortraitUpsideDown
+                      - UIInterfaceOrientationLandscapeLeft
+                      - UIInterfaceOrientationLandscapeRight
                 settings:
                   PRODUCT_BUNDLE_IDENTIFIER: com.example
                   ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-                  TARGETED_DEVICE_FAMILY: 1
+                  TARGETED_DEVICE_FAMILY: 1,2
                   PRODUCT_NAME: "Example App"
                   INFOPLIST_KEY_CFBundleDisplayName: "Example App"
-                  MARKETING_VERSION: "1.0"
                   CURRENT_PROJECT_VERSION: "1.0"
+                  MARKETING_VERSION: "1.0"
             """;
-            
+
         assertEquals(expected, Files.readString(specFile.toPath(), UTF_8));
     }
 

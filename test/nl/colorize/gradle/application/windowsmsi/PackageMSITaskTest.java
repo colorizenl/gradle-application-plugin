@@ -4,7 +4,7 @@
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
-package nl.colorize.gradle.application.windows;
+package nl.colorize.gradle.application.windowsmsi;
 
 import nl.colorize.gradle.application.ApplicationPlugin;
 import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleExt;
@@ -32,7 +32,7 @@ class PackageMSITaskTest {
         macConfig.setIcon("resources/icon.icns");
         macConfig.setMainClassName("com.example.ExampleApp");
 
-        WindowsExt windowsConfig = new WindowsExt();
+        WindowsInstallerExt windowsConfig = new WindowsInstallerExt();
         windowsConfig.setInherit(true);
         windowsConfig.setIcon("resources/icon.ico");
         windowsConfig.setUuid("b9112b5f-2340-4541-8883-6abd3c9c8780");
@@ -81,7 +81,7 @@ class PackageMSITaskTest {
             --win-menu
             --win-shortcut
             --dest
-            /tmp/build/windows""";
+            /tmp/build/windows-msi""";
 
         assertEquals(expected, String.join("\n", command));
     }

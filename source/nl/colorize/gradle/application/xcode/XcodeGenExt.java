@@ -8,15 +8,17 @@ package nl.colorize.gradle.application.xcode;
 
 import lombok.Data;
 import nl.colorize.gradle.application.AppHelper;
+import nl.colorize.gradle.application.Validatable;
 
 @Data
-public class XcodeGenExt {
+public class XcodeGenExt implements Validatable {
 
     private String appId;
     private String bundleId;
     private String appName;
     private String appVersion;
     private String icon;
+    private String iconBackgroundColor;
     private String deploymentTarget;
     private String resourcesDir;
     private String launchScreenColor;
@@ -24,12 +26,14 @@ public class XcodeGenExt {
     private String xcodeGenPath;
 
     public XcodeGenExt() {
+        this.iconBackgroundColor = "#000000";
         this.outputDir = "xcode";
         this.deploymentTarget = "14.0";
         this.launchScreenColor = "#000000";
         this.xcodeGenPath = "/usr/local/bin/xcodegen";
     }
 
+    @Override
     public void validate() {
         AppHelper.check(appId != null, "Missing xcodeGen.appId");
         AppHelper.check(bundleId != null, "Missing xcodeGen.bundleId");
