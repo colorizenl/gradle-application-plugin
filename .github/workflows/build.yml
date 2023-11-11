@@ -13,3 +13,8 @@ jobs:
         run: gradle compileJava
       - name: Unit tests
         run: gradle coverage -Pheadless=true
+      - name: Archive test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: build/reports
