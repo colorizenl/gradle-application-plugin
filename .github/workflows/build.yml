@@ -13,6 +13,8 @@ jobs:
         run: gradle compileJava
       - name: Unit tests
         run: gradle coverage -Pheadless=true
+        env:
+          LAUNCH4J_HOME: /launch4j/launch4j
       - name: Archive test report
         if: always()
         uses: actions/upload-artifact@v3
