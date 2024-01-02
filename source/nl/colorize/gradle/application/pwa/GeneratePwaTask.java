@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2023 Colorize
+// Copyright 2010-2024 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ public class GeneratePwaTask extends DefaultTask {
             .map(file -> base.relativize(file).toString())
             .filter(file -> !file.startsWith("userHome"))
             .sorted()
-            .map(file -> "\"" + file + "\",\n")
+            .map(file -> "\"/" + file + "\",\n")
             .collect(Collectors.joining(""));
 
         return AppHelper.loadResourceFile("service-worker.js", Map.of(

@@ -19,8 +19,6 @@ multiple application types for different source technologies and target platform
 This allows you to distribute the same application to multiple platforms, without having to
 maintain platform-specific code.
 
-![Example of building native apps for multiple platforms](example/resources/example-gallery.png)
-
 System requirements
 -------------------
 
@@ -44,7 +42,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2023.10.1"
+        id "nl.colorize.gradle.application" version "2024.1"
     }
 
 Building native Mac application bundles
@@ -69,7 +67,7 @@ The following shows an example on how to define this configuration in Gradle:
         name = "Example"
         identifier = "com.example"
         description = "A description for your application"
-        copyright = "Copyright 2023"
+        copyright = "Copyright 2024"
         bundleVersion = "1.0"
         icon = "resources/icon.icns"
         applicationCategory = "public.app-category.developer-tools"
@@ -308,7 +306,7 @@ Instructions for building the plugin itself
 
 Building the plugin itself can only be done on Mac OS. It also requires the following:
 
-- [Java JDK](http://java.oracle.com) 17+
+- [Java JDK](http://java.oracle.com) 21+
 - [Gradle](http://gradle.org)
 - [Ant](https://ant.apache.org)
 
@@ -350,7 +348,7 @@ the plugin itself. Refer to the documentation for each application type for deta
 License
 -------
 
-Copyright 2010-2023 Colorize
+Copyright 2010-2024 Colorize
 
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

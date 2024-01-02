@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2023 Colorize
+// Copyright 2010-2024 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -43,6 +43,8 @@ public class MacApplicationBundleExt implements Validatable {
     private String outputDir;
 
     public static final List<String> SUPPORTED_EMBEDDED_JDKS = List.of(
+        "temurin-21.jdk",
+        "temurin-m1-21.jdk",
         "temurin-17.jdk",
         "temurin-m1-17.jdk",
         "adoptopenjdk-11.jdk"

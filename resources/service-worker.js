@@ -10,21 +10,17 @@ const RESOURCE_FILES = [
 ];
 
 self.addEventListener("install", event => {
-    event.waitUntil(async () => {
-        const cache = await caches.open(CACHE_NAME);
-        return cache.addAll(RESOURCE_FILES);
-    });
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(RESOURCE_FILES);
+        })
+    );
 });
 
 self.addEventListener("fetch", event => {
-    event.respondWith(async () => {
-        const cache = await caches.open(CACHE_NAME);
-        const cachedResponse = await cache.match(event.request);
-
-        if (cachedResponse === undefined) {
-            return fetch(event.request);
-        } else {
-            return cachedResponse;
-        }
-    });
+    event.respondWith(
+        fetch(event.request).catch(() => {
+            return caches.match(event.request);
+        })
+    );
 });

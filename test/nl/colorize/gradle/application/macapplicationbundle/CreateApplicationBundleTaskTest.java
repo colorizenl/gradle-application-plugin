@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2023 Colorize
+// Copyright 2010-2024 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ class CreateApplicationBundleTaskTest {
         config.setName("Example");
         config.setIdentifier("com.example");
         config.setDescription("A description for your application");
-        config.setCopyright("Copyright 2023");
+        config.setCopyright("Copyright 2024");
         config.setMainClassName("HelloWorld.Main");
         config.setContentDir("resources");
         config.setBundleVersion("1.0");
@@ -47,7 +47,7 @@ class CreateApplicationBundleTaskTest {
         assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/MacOS").exists());
         assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/MacOS/JavaAppLauncher").exists());
         assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/Plugins").exists());
-        assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/Plugins/temurin-17.jdk").exists());
+        assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/Plugins/temurin-21.jdk").exists());
         assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/Resources").exists());
         assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/Resources/icon.icns").exists());
         assertTrue(new File(tempDir + "/build/mac/Example.app/Contents/Info.plist").exists());

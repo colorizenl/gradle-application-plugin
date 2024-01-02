@@ -16,12 +16,15 @@ apply plugin: "nl.colorize.gradle.application"
 
 group = "nl.colorize"
 version = "0.1"
-sourceCompatibility = "17"
-targetCompatibility = "17"
 compileJava.options.encoding = "UTF-8"
-sourceSets.main.java.srcDirs = ["source"]
-sourceSets.main.resources.srcDirs = ["../resources"]
-sourceSets.test.java.srcDirs = ["source"]
+
+java {
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
+    sourceSets.main.java.srcDirs = ["source"]
+    sourceSets.main.resources.srcDirs = ["../resources"]
+    sourceSets.test.java.srcDirs = ["source"]
+}
 
 jar {
     archiveFileName = "example.jar"
@@ -37,7 +40,7 @@ macApplicationBundle {
     identifier = "com.example"
     bundleVersion = "0.1"
     description = "A simple example application"
-    copyright = "Copyright 2010-2023 Colorize"
+    copyright = "Copyright 2010-2024 Colorize"
     icon = "../resources/icon.icns"
     applicationCategory = "public.app-category.developer-tools"
     mainClassName = "com.example.ExampleApp"
