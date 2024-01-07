@@ -3,6 +3,8 @@ Gradle application plugin: Build applications for Windows, Mac, iOS, Android, an
 
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/nl.colorize.gradle.application)](
 https://plugins.gradle.org/plugin/nl.colorize.gradle.application)
+[![License](https://img.shields.io/badge/license-apache_2.0-purple)](
+https://www.apache.org/licenses/LICENSE-2.0)
 
 Gradle plugin that builds native or hybrid applications for different platforms. It supports
 multiple application types for different source technologies and target platforms:
