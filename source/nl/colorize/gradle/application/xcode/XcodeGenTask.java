@@ -101,8 +101,8 @@ public class XcodeGenTask extends DefaultTask {
             writer.println("      path: \"" + ext.getAppId() + "/Info.plist\"");
             writer.println("      properties:");
             writer.println("        CFBundleDisplayName: \"" + ext.getAppName() + "\"");
-            writer.println("        CFBundleShortVersionString: $(MARKETING_VERSION)");
-            writer.println("        CFBundleVersion: $(CURRENT_PROJECT_VERSION)");
+            writer.println("        CFBundleShortVersionString: \"" + ext.getAppVersion() + "\"");
+            writer.println("        CFBundleVersion: \"" + ext.getBuildVersion() + "\"");
             writer.println("        UILaunchScreen:");
             writer.println("          UIColorName: " + ext.getLaunchScreenColor());
             writer.println("        UISupportedInterfaceOrientations~ipad:");

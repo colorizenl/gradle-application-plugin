@@ -6,6 +6,7 @@
 
 package nl.colorize.gradle.application.staticsite;
 
+import nl.colorize.gradle.application.AppHelper;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
@@ -72,6 +73,8 @@ public class GenerateStaticSiteTask extends DefaultTask {
             outputDir.mkdir();
         }
 
+        AppHelper.clearOutputDir(outputDir);
+
         templateCache.clear();
     }
 
@@ -85,7 +88,8 @@ public class GenerateStaticSiteTask extends DefaultTask {
             .toList();
     }
 
-    private void processFile(File file, File contentDir, File outputDir, StaticSiteExt config) throws IOException {
+    private void processFile(File file, File contentDir, File outputDir, StaticSiteExt config)
+            throws IOException {
         Path relativePath = contentDir.toPath().relativize(file.toPath());
         File outputFile = outputDir.toPath().resolve(relativePath).toFile();
 
@@ -109,7 +113,8 @@ public class GenerateStaticSiteTask extends DefaultTask {
         return markdownHtmlRenderer.render(markdown);
     }
 
-    private void processContentFile(String content, File file, File outputFile, StaticSiteExt config) throws IOException {
+    private void processContentFile(String content, File file, File outputFile, StaticSiteExt config)
+            throws IOException {
         for (Document template : findTemplateChain(file, config)) {
             content = renderTemplate(content, template);
         }

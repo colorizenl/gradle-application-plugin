@@ -26,12 +26,29 @@ java {
     sourceSets.test.java.srcDirs = ["source"]
 }
 
+repositories {
+    mavenCentral()
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
+dependencies {
+    implementation "nl.colorize:colorize-java-commons:2024.1"
+    implementation "nl.colorize:multimedialib:2024.1"
+}
+
 jar {
     archiveFileName = "example.jar"
-    duplicatesStrategy = DuplicatesStrategy.WARN
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude "**/module-info.class"
 
     manifest {
         attributes "Main-Class": "com.example.ExampleApp"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
@@ -44,6 +61,8 @@ macApplicationBundle {
     icon = "../resources/icon.icns"
     applicationCategory = "public.app-category.developer-tools"
     mainClassName = "com.example.ExampleApp"
+    extractNatives = true
+    args = ["gdx"]
 }
 
 msi {

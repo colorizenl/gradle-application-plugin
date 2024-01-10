@@ -45,37 +45,23 @@ public class SignApplicationBundleTask extends DefaultTask {
                 appBundle.getAbsolutePath());
         }
 
-        File pluginsDir = new File(appBundle.getAbsolutePath() + "/Contents/PlugIns");
-        File embeddedJDK = new File(pluginsDir, getEmbeddedJdkName());
+        signBundle(appBundle, config);
+    }
 
-        if (!embeddedJDK.exists()) {
-            throw new IllegalStateException("Cannot locate embedded JDK: " +
-                embeddedJDK.getAbsolutePath());
-        }
+    private void signBundle(File appBundle, MacApplicationBundleExt config) throws IOException {
+        File embeddedJDK = locateEmbeddedJDK(appBundle);
 
+        File appEntitlements = generateEntitlements(ENTITLEMENTS_APP);
         File jreEntitlements = generateEntitlements(ENTITLEMENTS_JRE);
 
         Files.walk(appBundle.toPath())
             .map(Path::toFile)
-            .filter(this::shouldSignFile)
+            .filter(file -> file.getName().endsWith(".dylib") || file.getName().equals("jspawnhelper"))
             .forEach(bin -> sign(bin, jreEntitlements));
 
         sign(embeddedJDK, jreEntitlements);
-        sign(appBundle, generateEntitlements(ENTITLEMENTS_APP));
+        sign(appBundle, appEntitlements);
         createInstallerPackage(config, appBundle);
-    }
-
-    private String getEmbeddedJdkName() {
-        String javaHome = System.getenv("JAVA_HOME");
-
-        return MacApplicationBundleExt.SUPPORTED_EMBEDDED_JDKS.stream()
-            .filter(javaHome::contains)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unsupported JDK: " + javaHome));
-    }
-
-    private boolean shouldSignFile(File file) {
-        return file.getName().endsWith(".dylib") || file.getName().equals("jspawnhelper");
     }
 
     private void sign(File target, File entitlements) {
@@ -101,9 +87,25 @@ public class SignApplicationBundleTask extends DefaultTask {
         );
     }
 
-    private void exec(String... command) {
-        List<String> args = List.of(command);
-        getProject().exec(exec -> exec.commandLine(args));
+    private File locateEmbeddedJDK(File appBundle) {
+        File pluginsDir = new File(appBundle.getAbsolutePath() + "/Contents/PlugIns");
+        File embeddedJDK = new File(pluginsDir, getEmbeddedJdkName());
+
+        if (!embeddedJDK.exists()) {
+            throw new IllegalStateException("Cannot locate embedded JDK in " +
+                embeddedJDK.getAbsolutePath());
+        }
+
+        return embeddedJDK;
+    }
+
+    private String getEmbeddedJdkName() {
+        String javaHome = System.getenv("JAVA_HOME");
+
+        return MacApplicationBundleExt.SUPPORTED_EMBEDDED_JDKS.stream()
+            .filter(javaHome::contains)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unsupported JDK: " + javaHome));
     }
 
     private File generateEntitlements(String sourceFile) throws IOException {
@@ -115,5 +117,10 @@ public class SignApplicationBundleTask extends DefaultTask {
         }
 
         return tempFile;
+    }
+
+    private void exec(String... command) {
+        List<String> args = List.of(command);
+        getProject().exec(exec -> exec.commandLine(args));
     }
 }

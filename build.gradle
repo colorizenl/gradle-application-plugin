@@ -20,7 +20,7 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2024.1"
+version = "2024.2"
 compileJava.options.encoding = "UTF-8"
 
 java {

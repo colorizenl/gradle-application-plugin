@@ -40,6 +40,7 @@ public class MacApplicationBundleExt implements Validatable {
     private List<String> args;
     private boolean startOnFirstThread;
     private String jdkPath;
+    private boolean extractNatives;
     private String outputDir;
 
     public static final List<String> SUPPORTED_EMBEDDED_JDKS = List.of(
@@ -78,6 +79,7 @@ public class MacApplicationBundleExt implements Validatable {
         startOnFirstThread = false;
 
         jdkPath = AppHelper.getEnvironmentVariable("JAVA_HOME");
+        extractNatives = false;
         outputDir = "mac";
     }
 

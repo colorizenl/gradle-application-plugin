@@ -52,8 +52,8 @@ class XcodeGenTaskTest {
                   path: "example/Info.plist"
                   properties:
                     CFBundleDisplayName: "Example App"
-                    CFBundleShortVersionString: $(MARKETING_VERSION)
-                    CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+                    CFBundleShortVersionString: "1.0"
+                    CFBundleVersion: "1.0"
                     UILaunchScreen:
                       UIColorName: #000000
                     UISupportedInterfaceOrientations~ipad:

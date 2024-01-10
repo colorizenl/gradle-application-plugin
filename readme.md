@@ -44,7 +44,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2024.1"
+        id "nl.colorize.gradle.application" version "2024.2"
     }
 
 Building native Mac application bundles
@@ -100,6 +100,7 @@ The following configuration options are available:
 | `args`                 | no       | List of command line arguments provided to the main class.            |
 | `startOnFirstThread`   | no       | When true, starts the application with `-XstartOnFirstThread`.        |
 | `icon`                 | yes      | Location of the `.icns` file.                                         |
+| `extractNatives`       | no       | Extracts embedded native libraries from JAR files.                    |
 | `outputDir`            | no       | Output directory path, defaults to `build/mac`.                       |
     
 - Note that, in addition to the `bundleVersion` property, there is also the concept of build
@@ -116,7 +117,7 @@ The following configuration options are available:
 
 ```
     jar {
-        duplicatesStrategy = DuplicatesStrategy.WARN
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         exclude "**/module-info.class"
         exclude "**/META-INF/INDEX.LIST"
         exclude "**/META-INF/*.SF"

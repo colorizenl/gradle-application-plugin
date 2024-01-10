@@ -18,6 +18,7 @@ import java.nio.file.Files;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GeneratePwaTaskTest {
@@ -118,6 +119,29 @@ class GeneratePwaTaskTest {
             """;
 
         assertEquals(expected, readOutput(tempDir, "build/pwa/service-worker.js"));
+    }
+
+    @Test
+    void clearOutputDirectory(@TempDir File tempDir) throws IOException {
+        Files.writeString(new File(tempDir, "manifest.json").toPath(), "{}", UTF_8);
+        Files.writeString(new File(tempDir, "index.html").toPath(), "<html />", UTF_8);
+        Files.writeString(new File(tempDir, "new.txt").toPath(), "1234", UTF_8);
+
+        File buildDir = new File(tempDir, "build/pwa");
+        buildDir.mkdirs();
+        Files.writeString(new File(buildDir, "old.txt").toPath(), "1234", UTF_8);
+
+        PwaExt config = new PwaExt();
+        config.setWebAppDir(tempDir.getAbsolutePath());
+        config.setManifest(new File(tempDir, "manifest.json").getAbsolutePath());
+        config.setCacheName("test");
+
+        Project project = initProject(tempDir);
+        GeneratePwaTask task = (GeneratePwaTask) project.getTasks().getByName("generatePWA");
+        task.run(config);
+
+        assertTrue(new File(buildDir, "new.txt").exists());
+        assertFalse(new File(buildDir, "old.txt").exists());
     }
 
     private Project initProject(File inputDir) {

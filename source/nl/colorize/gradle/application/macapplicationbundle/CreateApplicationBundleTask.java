@@ -20,8 +20,14 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class CreateApplicationBundleTask extends DefaultTask {
 
@@ -38,7 +44,11 @@ public class CreateApplicationBundleTask extends DefaultTask {
 
         File jdk = new File(config.getJdkPath());
         File outputDir = config.getOutputDir(getProject());
+        AppHelper.cleanDirectory(outputDir);
         bundle(config, jdk, outputDir);
+        if (config.isExtractNatives()) {
+            extractNativeLibraries(outputDir);
+        }
     }
 
     private void bundle(MacApplicationBundleExt config, File jdk, File outputDir) {
@@ -84,7 +94,6 @@ public class CreateApplicationBundleTask extends DefaultTask {
     private FileSet createClassPath(MacApplicationBundleExt config) {
         FileSet classPath = new FileSet();
         classPath.setDir(getContentDir(config));
-        classPath.setIncludes("*.jar");
         classPath.setExcludes("*-sources.jar,*-javadoc.jar");
         return classPath;
     }
@@ -161,5 +170,46 @@ public class CreateApplicationBundleTask extends DefaultTask {
             return System.getProperty("shortversion");
         }
         return config.getBundleVersion();
+    }
+
+    /**
+     * Extracts all embedded native libraries from JAR files, as extracting
+     * at runtime is not allowed by the Mac App Store.
+     */
+    private void extractNativeLibraries(File outputDir) {
+        try {
+            Files.walk(outputDir.toPath())
+                .map(Path::toFile)
+                .filter(file -> file.getName().endsWith(".jar"))
+                .filter(file -> file.getParentFile().getName().equals("Java"))
+                .forEach(this::extractNativeLibrariesFromJAR);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to extract native libraries", e);
+        }
+    }
+
+    private void extractNativeLibrariesFromJAR(File jarFile) {
+        File outputDir = jarFile.getParentFile();
+
+        try (JarFile jar = new JarFile(jarFile)) {
+            jar.stream()
+                .filter(entry -> entry.getName().endsWith(".dylib"))
+                .forEach(entry -> extractNativeLibrary(jar, entry, outputDir));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to extract native libraries from " + jarFile, e);
+        }
+    }
+
+    private void extractNativeLibrary(JarFile jar, JarEntry entry, File outputDir) {
+        File outputFile = new File(outputDir, "native-" + entry.getName().replace("/", "-"));
+        if (outputFile.exists()) {
+            throw new IllegalStateException("File already exists: " + outputFile);
+        }
+
+        try (InputStream stream = jar.getInputStream(entry)) {
+            Files.copy(stream, outputFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to extract " + entry.getName(), e);
+        }
     }
 }

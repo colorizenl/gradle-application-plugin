@@ -139,4 +139,20 @@ public class AppHelper {
         }
         return contents;
     }
+
+    public static void clearOutputDir(File outputDir) {
+        if (!outputDir.exists()) {
+            return;
+        }
+
+        try {
+            Files.walk(outputDir.toPath())
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .filter(file -> !file.equals(outputDir))
+                .forEach(File::delete);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to clear directory: " + outputDir.getAbsolutePath());
+        }
+    }
 }

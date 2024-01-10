@@ -30,14 +30,17 @@ public class GeneratePwaTask extends DefaultTask {
     protected void run(PwaExt config) {
         config.validate();
 
+        File outputDir = config.getOutputDir(getProject());
+        AppHelper.clearOutputDir(outputDir);
+
         getProject().copy(copy -> {
             copy.from(config.getWebAppDir());
-            copy.into(config.getOutputDir(getProject()));
+            copy.into(outputDir);
             copy.exclude("build/**");
         });
 
         try {
-            File indexFile = new File(config.getOutputDir(getProject()), "index.html");
+            File indexFile = new File(outputDir, "index.html");
             rewriteHTML(indexFile);
             writeManifest(config);
             writeServiceWorker(config);
