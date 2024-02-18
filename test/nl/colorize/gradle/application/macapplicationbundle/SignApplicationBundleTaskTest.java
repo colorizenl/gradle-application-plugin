@@ -31,6 +31,7 @@ class SignApplicationBundleTaskTest {
         MacApplicationBundleExt config = new MacApplicationBundleExt();
         config.setName("Example");
         config.setIdentifier("com.example");
+        config.setMainJarName("example.jar");
         config.setMainClassName("HelloWorld.Main");
         config.setContentDir("resources");
 
@@ -45,5 +46,37 @@ class SignApplicationBundleTaskTest {
         File bundle = new File(tempDir + "/build/mac/Example.app");
 
         assertTrue(bundle.exists());
+    }
+
+    @Test
+    void extractNativeLibraries(@TempDir File tempDir) throws IOException {
+        Project project = ProjectBuilder.builder()
+            .withProjectDir(tempDir)
+            .build();
+
+        ApplicationPlugin plugin = new ApplicationPlugin();
+        plugin.apply(project);
+
+        MacApplicationBundleExt config = new MacApplicationBundleExt();
+        config.setName("Example");
+        config.setIdentifier("com.example");
+        config.setMainJarName("example.jar");
+        config.setMainClassName("HelloWorld.Main");
+        config.setContentDir("resources");
+        config.setSignNativeLibraries(true);
+
+        CreateApplicationBundleTask createTask = (CreateApplicationBundleTask) project.getTasks()
+            .getByName("createApplicationBundle");
+        createTask.run(config);
+
+        SignApplicationBundleTask signTask = (SignApplicationBundleTask) project.getTasks()
+            .getByName("signApplicationBundle");
+        signTask.run(config);
+
+        File bundle = new File(tempDir + "/build/mac/Example.app");
+
+        assertTrue(bundle.exists());
+        assertTrue(new File(bundle, "Contents/MacOS").exists());
+        assertTrue(new File(bundle, "Contents/MacOS/native.dylib").exists());
     }
 }

@@ -13,12 +13,13 @@ import org.gradle.api.tasks.TaskAction;
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
 
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.KEY_INTERPOLATION;
@@ -84,42 +85,21 @@ public class XcodeGenTask extends DefaultTask {
     }
 
     protected void generateSpecFile(XcodeGenExt ext, File specFile) {
-        try (PrintWriter writer = new PrintWriter(specFile, UTF_8)) {
-            writer.println("name: " + ext.getAppName());
-            writer.println("options:");
-            writer.println("  createIntermediateGroups: true");
-            writer.println("targets:");
-            writer.println("  " + ext.getAppId() + ":");
-            writer.println("    type: application");
-            writer.println("    platform: iOS");
-            writer.println("    deploymentTarget: \"" + ext.getDeploymentTarget() + "\"");
-            writer.println("    sources:");
-            writer.println("      - " + ext.getAppId());
-            writer.println("      - path: HybridResources");
-            writer.println("        type: folder");
-            writer.println("    info:");
-            writer.println("      path: \"" + ext.getAppId() + "/Info.plist\"");
-            writer.println("      properties:");
-            writer.println("        CFBundleDisplayName: \"" + ext.getAppName() + "\"");
-            writer.println("        CFBundleShortVersionString: \"" + ext.getAppVersion() + "\"");
-            writer.println("        CFBundleVersion: \"" + ext.getBuildVersion() + "\"");
-            writer.println("        UILaunchScreen:");
-            writer.println("          UIColorName: " + ext.getLaunchScreenColor());
-            writer.println("        UISupportedInterfaceOrientations~ipad:");
-            writer.println("          - UIInterfaceOrientationPortrait");
-            writer.println("          - UIInterfaceOrientationPortraitUpsideDown");
-            writer.println("          - UIInterfaceOrientationLandscapeLeft");
-            writer.println("          - UIInterfaceOrientationLandscapeRight");
-            writer.println("    settings:");
-            writer.println("      PRODUCT_BUNDLE_IDENTIFIER: " + ext.getBundleId());
-            writer.println("      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon");
-            writer.println("      TARGETED_DEVICE_FAMILY: 1,2");
-            writer.println("      PRODUCT_NAME: \"" + ext.getAppName() + "\"");
-            writer.println("      INFOPLIST_KEY_CFBundleDisplayName: \"" + ext.getAppName() + "\"");
-            writer.println("      CURRENT_PROJECT_VERSION: \"" + ext.getBuildVersion() + "\"");
-            writer.println("      MARKETING_VERSION: \"" + ext.getAppVersion() + "\"");
+        Map<String, String> properties = Map.of(
+            "{{appName}}", ext.getAppName(),
+            "{{appId}}", ext.getAppId(),
+            "{{deploymentTarget}}", ext.getDeploymentTarget(),
+            "{{launchScreenColor}}", ext.getLaunchScreenColor(),
+            "{{bundleId}}", ext.getBundleId(),
+            "{{appVersion}}", ext.getAppVersion(),
+            "{{buildVersion}}", ext.getBuildVersion()
+        );
+
+        try {
+            String template = AppHelper.rewriteTemplate("xcodegen-template.yml", properties);
+            Files.writeString(specFile.toPath(), template, UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("Unable to generate XcodeGen spec file", e);
+            throw new RuntimeException("Error while generating XcodeGen spec file", e);
         }
     }
 
@@ -141,16 +121,40 @@ public class XcodeGenTask extends DefaultTask {
         for (IconVariant variant : ICON_VARIANTS) {
             BufferedImage image = new BufferedImage(variant.size, variant.size, TYPE_INT_ARGB);
             Graphics2D g2 = image.createGraphics();
-            g2.setColor(background);
-            g2.fillRect(0, 0, image.getWidth(), image.getHeight());
             g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
             g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-            g2.drawImage(base, 0, 0, image.getWidth(), image.getHeight(), null);
+            g2.setColor(background);
+            g2.fillRect(0, 0, variant.size, variant.size);
+            g2.drawImage(scaleImage(base, variant.size, variant.size, true), 0, 0, null);
             g2.dispose();
 
             File outputFile = new File(iconDir, "icon-" + variant.size + ".png");
             ImageIO.write(image, "png", outputFile);
         }
+    }
+
+    private BufferedImage scaleImage(Image original, int width, int height, boolean highQuality) {
+        Image current = original;
+        int currentWidth = current.getWidth(null);
+        int currentHeight = current.getHeight(null);
+
+        while (highQuality && (currentWidth >= width * 2 || currentHeight >= height * 2)) {
+            currentWidth = currentWidth / 2;
+            currentHeight = currentHeight / 2;
+            current = scaleImage(current, currentWidth, currentHeight);
+        }
+
+        return scaleImage(current, width, height);
+    }
+
+    private BufferedImage scaleImage(Image original, int width, int height) {
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = result.createGraphics();
+        g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(original, 0, 0, width, height, null);
+        g2.dispose();
+        return result;
     }
 
     private List<String> buildCommand(XcodeGenExt ext, File specFile, File outputDir) {

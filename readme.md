@@ -44,7 +44,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2024.2"
+        id "nl.colorize.gradle.application" version "2024.4"
     }
 
 Building native Mac application bundles
@@ -81,39 +81,57 @@ The following shows an example on how to define this configuration in Gradle:
 
 The following configuration options are available:
 
-| Name                   | Required | Description                                                           |
-|------------------------|----------|-----------------------------------------------------------------------|
-| `name`                 | yes      | Mac application name.                                                 |
-| `displayName`          | no       | Optional display name, defaults to the value of `name`.               |
-| `identifier`           | yes      | Apple application identfiier, in the format "com.example.name".       | 
-| `bundleVersion`        | yes      | Application bundle version number.                                    |
-| `description`          | yes      | Short description text.                                               |
-| `copyright`            | yes      | Copyright statement text.                                             |
-| `applicationCategory`  | yes      | Apple application category ID.                                        |
-| `minimumSystemVersion` | no       | Minimum required Mac OS version number. Defaults to 10.13.            |
-| `architectures`        | no       | List of supported CPU architectures. Default is `arm64` and `x86_64`. |
-| `mainClassName`        | yes      | Fully qualified main class name.                                      |
-| `jdkPath`              | no       | Location of JDK. Defaults to `JAVA_HOME`.                             |
-| `modules`              | no       | List of JDK modules. An empty list will embed the entire JDK.         |
-| `additionalModules`    | no       | List of JDK modules, added without overriding the default `modules`.  | 
-| `options`              | no       | List of JVM command line options.                                     |
-| `args`                 | no       | List of command line arguments provided to the main class.            |
-| `startOnFirstThread`   | no       | When true, starts the application with `-XstartOnFirstThread`.        |
-| `icon`                 | yes      | Location of the `.icns` file.                                         |
-| `extractNatives`       | no       | Extracts embedded native libraries from JAR files.                    |
-| `outputDir`            | no       | Output directory path, defaults to `build/mac`.                       |
-    
-- Note that, in addition to the `bundleVersion` property, there is also the concept of build
-  version. This is normally the same as the bundle version, but can be manually specified for each
-  build by setting the `buildversion` system property.
-- Signing the application bundle requires an Apple Developer account and corresponding signing
-  identity. The name of this identity can be set using the `MAC_SIGN_APP_IDENTITY` and
-  `MAC_SIGN_INSTALLER_IDENTITY` environment variables, for signing applications and installers
-  respectively.
-- By default, the contents of the application will be based on all JAR files produces by the
-  project, as described by the `libsDir` property. This behavior can be replaced by setting the 
-  `contentDir` property in the plugin's configuration. The easiest way to bundle all content, 
-  including  application binaries, resources, and libraries, is to create a single "fat JAR" file:
+| Name                   | Required | Description                                                     |
+|------------------------|----------|-----------------------------------------------------------------|
+| `name`                 | yes      | Mac application name.                                           |
+| `displayName`          | no       | Optional display name, defaults to the value of `name`.         |
+| `identifier`           | yes      | Apple application identfiier, in the format "com.example.name". | 
+| `bundleVersion`        | yes      | Application bundle version number.                              |
+| `description`          | yes      | Short description text.                                         |
+| `copyright`            | yes      | Copyright statement text.                                       |
+| `applicationCategory`  | yes      | Apple application category ID.                                  |
+| `minimumSystemVersion` | no       | Minimum required Mac OS version number. Defaults to 10.13.      |
+| `architectures`        | no       | Supported CPU architectures. Default is [`arm64`, `x86_64`].    |
+| `mainJarName`          | yes      | File name for the JAR file containing the main class.           |
+| `mainClassName`        | yes      | Fully qualified main class name.                                |
+| `jdkPath`              | no       | Location of JDK. Defaults to `JAVA_HOME`.                       |
+| `modules`              | no       | Overrides list of embedded JDK modules.                         |
+| `additionalModules`    | no       | Extends default list of embedded JDK modules.                   | 
+| `options`              | no       | List of JVM command line options.                               |
+| `args`                 | no       | List of command line arguments provided to the main class.      |
+| `startOnFirstThread`   | no       | When true, starts the application with `-XstartOnFirstThread`.  |
+| `icon`                 | yes      | Location of the `.icns` file.                                   |
+| `launcher`             | no       | Generated launcher type. Either "native" (default) or "shell".  |
+| `signNativeLibraries`  | no       | Signs native libraries embedded in the application's JAR files. |
+| `outputDir`            | no       | Output directory path, defaults to `build/mac`.                 |
+
+The application bundle includes a Java runtime. This does not include the full JDK, to reduce
+the bundle size. The list of JDK modules can be extended using the `additionalModules` property,
+or replaced entirely using the `modules` property. By default, the following JDK modules are
+included in the runtime:
+
+- java.base
+- java.desktop
+- java.logging
+- java.net.http
+- java.sql
+- jdk.crypto.ec
+
+Mac applications use two different version numbers: The application version and the build version.
+By default, both are based on the `bundleVersion` property. It is possible to specify the build
+version on the command line (it's not a property since the build version is supposed to be unique
+for every build). The build version can be set using the `buildversion` system property, e.g.
+`gradle -Dbuildversion=1.0.1 createApplicationBundle`.
+
+Signing the application bundle requires an Apple Developer account and corresponding signing
+identity. The name of this identity can be set using the `MAC_SIGN_APP_IDENTITY` and
+`MAC_SIGN_INSTALLER_IDENTITY` environment variables, for signing applications and installers
+respectively.
+
+By default, the contents of the application will be based on all JAR files produces by the
+project, as described by the `libsDir` property. This behavior can be replaced by setting the 
+`contentDir` property in the plugin's configuration. The easiest way to bundle all content, 
+including  application binaries, resources, and libraries, is to create a single "fat JAR" file:
 
 ```
     jar {
@@ -137,8 +155,13 @@ The following configuration options are available:
 The plugin adds a number of tasks to the project that use this configuration:
 
 - **createApplicationBundle**: Creates the application bundle in the specified directory.
-- **signApplicationBundle**: Signs the created application bundle and packages it into an installer
-  so that it can be distributed. 
+- **signApplicationBundle**: Signs the created application bundle and packages it into an
+  installer so that it can be distributed. 
+- **packageApplicationBundle**: An *experimental* task that creates the application bundle using
+  the [jpackage](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jpackage.html) tool
+  that is included with the JDK. Creates both a DMG file and a PKG installer. This task is
+  experimental, it does not yet support all options from the *createApplicationBundle* and
+  *signApplicationBundle* tasks.
 
 Note that the tasks are *not* added to any standard tasks such as `assemble`, as Mac application
 bundles can only be created when running the build on a Mac, making the tasks incompatible with
@@ -167,7 +190,7 @@ are available:
 | Name            | Required | Description                                                     |
 |-----------------|----------|-----------------------------------------------------------------|
 | `inherit`       | no       | Inherits some configuration options from Mac app configuration. |
-| `mainJarName`   | no       | File name of the main JAR file. Defaults to application JAR.    |
+| `mainJarName`   | depends  | File name of the main JAR file. Defaults to application JAR.    |
 | `mainClassName` | depends  | Fully qualified main class name.                                |
 | `options`       | no       | List of JVM command line options.                               |
 | `args`          | no       | List of command line arguments provided to the main class.      |
@@ -198,7 +221,7 @@ configured using the `exe` section:
 | Name          | Required | Description                                                     |
 |---------------|----------|-----------------------------------------------------------------|
 | `inherit`     | no       | Inherits some configuration options from Mac app configuration. |
-| `mainJarName` | no       | File name of the main JAR file. Defaults to application JAR.    |
+| `mainJarName` | depends  | File name of the main JAR file. Defaults to application JAR.    |
 | `args`        | no       | List of command line arguments provided to the main class.      |
 | `name`        | depends  | Windows application name.                                       |
 | `version`     | depends  | Windows application version number.                             |
@@ -338,7 +361,9 @@ The plugin comes with an example application, that can be used to test the plugi
 - Navigate to the `example` directory to build the example app.
   - Run `gradle createApplicationBundle` to create a Mac application bundle.
   - Run `gradle signApplicationBundle` to sign a Mac application bundle.
+  - Run `gradle packageApplicationBundle` to create a Mac application bundle using `jpackage`.
   - Run `gradle packageMSI` to create a Windows MSI installer.
+  - Run `gradle packageEXE` to create a standalone Windows application.
   - Run `gradle xcodeGen` to generate a Xcode project for a hybrid iOS app.
   - Run `gradle generateStaticSite` to generate a website from Markdown templates.
   - Run `gradle generatePWA` to create a PWA version of the aforementioned website.

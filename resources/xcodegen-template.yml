@@ -1,0 +1,33 @@
+name: "{{appName}}"
+options:
+  createIntermediateGroups: true
+targets:
+  {{appId}}:
+    type: application
+    platform: iOS
+    deploymentTarget: "{{deploymentTarget}}"
+    sources:
+      - {{appId}}
+      - path: HybridResources
+        type: folder
+    info:
+      path: "{{appId}}/Info.plist"
+      properties:
+        CFBundleDisplayName: "{{appName}}"
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: "{{launchScreenColor}}"
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: {{bundleId}}
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      TARGETED_DEVICE_FAMILY: 1,2
+      PRODUCT_NAME: "{{appName}}"
+      INFOPLIST_KEY_CFBundleDisplayName: "{{appName}}"
+      CURRENT_PROJECT_VERSION: "{{buildVersion}}"
+      MARKETING_VERSION: "{{appVersion}}"

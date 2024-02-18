@@ -40,19 +40,13 @@ public class WindowsInstallerExt implements Validatable {
         this.outputDir = "windows-msi";
     }
 
-    public String getMainJarName(Project project) {
-        if (mainJarName != null) {
-            return mainJarName;
-        }
-        return AppHelper.getJarFileName(project);
-    }
-
     public File getOutputDir(Project project) {
         return AppHelper.getOutputDir(project, outputDir);
     }
 
     @Override
     public void validate() {
+        AppHelper.check(mainJarName != null, "Missing msi.mainJarName");
         AppHelper.check(mainClassName != null, "Missing msi.mainClassName");
         AppHelper.check(name != null, "Missing msi.name");
         AppHelper.check(version != null, "Missing msi.version");
@@ -65,6 +59,7 @@ public class WindowsInstallerExt implements Validatable {
     }
 
     public void inherit(MacApplicationBundleExt macConfig) {
+        mainJarName = macConfig.getMainJarName();
         mainClassName = macConfig.getMainClassName();
         name = macConfig.getName();
         version = macConfig.getBundleVersion();

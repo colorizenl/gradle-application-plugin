@@ -37,17 +37,10 @@ public class WindowsStandaloneExt implements Validatable {
         this.javaVersion = "17";
     }
 
-    public String getMainJarName(Project project) {
-        if (mainJarName != null) {
-            return mainJarName;
-        }
-        return AppHelper.getJarFileName(project);
-    }
-
     public File getExeFile(Project project) {
         String fileName = exeFileName;
         if (exeFileName == null) {
-            fileName = getMainJarName(project).replace(".jar", ".exe");
+            fileName = mainJarName.replace(".jar", ".exe");
         }
         return new File(project.getBuildDir(), fileName);
     }
@@ -59,10 +52,12 @@ public class WindowsStandaloneExt implements Validatable {
         AppHelper.check(icon != null, "Missing exe.icon");
         AppHelper.check(icon.endsWith(".ico"), "Windows icon must be a .ico file");
         AppHelper.check(supportURL != null, "Missing exe.supportURL");
+        AppHelper.check(mainJarName != null, "Missing exe.mainJarName");
     }
 
     public void inherit(MacApplicationBundleExt macConfig) {
         name = macConfig.getName();
         version = macConfig.getBundleVersion();
+        mainJarName = macConfig.getMainJarName();
     }
 }

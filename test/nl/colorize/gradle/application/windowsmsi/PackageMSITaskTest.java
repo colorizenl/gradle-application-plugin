@@ -30,6 +30,7 @@ class PackageMSITaskTest {
         macConfig.setDescription("A simple example application");
         macConfig.setCopyright("Copyright 2010-2024 Colorize");
         macConfig.setIcon("resources/icon.icns");
+        macConfig.setMainJarName("example.jar");
         macConfig.setMainClassName("com.example.ExampleApp");
 
         WindowsInstallerExt windowsConfig = new WindowsInstallerExt();

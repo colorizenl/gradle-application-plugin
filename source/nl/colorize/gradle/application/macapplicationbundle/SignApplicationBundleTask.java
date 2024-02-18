@@ -15,8 +15,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class SignApplicationBundleTask extends DefaultTask {
 
@@ -38,74 +40,59 @@ public class SignApplicationBundleTask extends DefaultTask {
     }
 
     protected void run(MacApplicationBundleExt config) throws IOException {
-        File appBundle = new File(config.getOutputDir(getProject()), config.getName() + ".app");
-
-        if (!appBundle.exists()) {
-            throw new IllegalStateException("Application bundle does not exist: " +
-                appBundle.getAbsolutePath());
-        }
-
-        signBundle(appBundle, config);
-    }
-
-    private void signBundle(File appBundle, MacApplicationBundleExt config) throws IOException {
-        File embeddedJDK = locateEmbeddedJDK(appBundle);
-
+        File appBundle = config.locateApplicationBundle(getProject());
+        File embeddedJDK = config.locateEmbeddedJDK(getProject());
         File appEntitlements = generateEntitlements(ENTITLEMENTS_APP);
         File jreEntitlements = generateEntitlements(ENTITLEMENTS_JRE);
 
-        Files.walk(appBundle.toPath())
-            .map(Path::toFile)
-            .filter(file -> file.getName().endsWith(".dylib") || file.getName().equals("jspawnhelper"))
-            .forEach(bin -> sign(bin, jreEntitlements));
+        if (config.isSignNativeLibraries()) {
+            extractNativeLibraries(config);
+        }
+
+        for (File file : AppHelper.walk(appBundle, this::isNativeBinary)) {
+            sign(file, jreEntitlements);
+        }
+
+        File shellLauncher = new File(appBundle, "/Contents/MacOS/ColorizeLauncher");
+        if (shellLauncher.exists()) {
+            //sign(shellLauncher, appEntitlements);
+        }
 
         sign(embeddedJDK, jreEntitlements);
         sign(appBundle, appEntitlements);
         createInstallerPackage(config, appBundle);
     }
 
+    private boolean isNativeBinary(File file) {
+        return file.getName().endsWith(".dylib") || file.getName().equals("jspawnhelper");
+    }
+
     private void sign(File target, File entitlements) {
-        exec(
+        List<String> command = List.of(
             "codesign",
             "-s", AppHelper.getEnvironmentVariable(MacApplicationBundleExt.SIGN_APP_ENV),
             "-vvvv",
             "--force",
             "--entitlements", entitlements.getAbsolutePath(),
+            "--options", "runtime",
             target.getAbsolutePath()
         );
+
+        getProject().exec(exec -> exec.commandLine(command));
     }
 
     private void createInstallerPackage(MacApplicationBundleExt config, File appFile) {
         File pkgFile = new File(config.getOutputDir(getProject()), config.getName() + ".pkg");
 
-        exec(
+        List<String> command = List.of(
             "productbuild",
             "--component", appFile.getAbsolutePath(),
             "/Applications",
             "--sign", AppHelper.getEnvironmentVariable(MacApplicationBundleExt.SIGN_INSTALLER_ENV),
             pkgFile.getAbsolutePath()
         );
-    }
 
-    private File locateEmbeddedJDK(File appBundle) {
-        File pluginsDir = new File(appBundle.getAbsolutePath() + "/Contents/PlugIns");
-        File embeddedJDK = new File(pluginsDir, getEmbeddedJdkName());
-
-        if (!embeddedJDK.exists()) {
-            throw new IllegalStateException("Cannot locate embedded JDK in " +
-                embeddedJDK.getAbsolutePath());
-        }
-
-        return embeddedJDK;
-    }
-
-    private String getEmbeddedJdkName() {
-        String javaHome = System.getenv("JAVA_HOME");
-
-        return MacApplicationBundleExt.SUPPORTED_EMBEDDED_JDKS.stream()
-            .filter(javaHome::contains)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unsupported JDK: " + javaHome));
+        getProject().exec(exec -> exec.commandLine(command));
     }
 
     private File generateEntitlements(String sourceFile) throws IOException {
@@ -119,8 +106,32 @@ public class SignApplicationBundleTask extends DefaultTask {
         return tempFile;
     }
 
-    private void exec(String... command) {
-        List<String> args = List.of(command);
-        getProject().exec(exec -> exec.commandLine(args));
+    private void extractNativeLibraries(MacApplicationBundleExt config) throws IOException {
+        File appBundle = config.locateApplicationBundle(getProject());
+        File jarDir = new File(appBundle, "/Contents/Java");
+        File jarFile = new File(jarDir, config.getMainJarName());
+        File nativesDir = new File(appBundle, "/Contents/MacOS");
+
+        try (JarFile jar = new JarFile(jarFile)) {
+            for (JarEntry entry : Collections.list(jar.entries())) {
+                if (isCompatibleNativeLibrary(entry.getName(), config)) {
+                    String fileName = entry.getName().substring(entry.getName().lastIndexOf("/") + 1);
+                    File dylib = new File(nativesDir, fileName);
+                    if (!dylib.exists()) {
+                        Files.copy(jar.getInputStream(entry), dylib.toPath());
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isCompatibleNativeLibrary(String name, MacApplicationBundleExt config) {
+        if (!name.endsWith(".dylib")) {
+            return false;
+        }
+
+        boolean intel = name.contains("x64") || name.contains("x86");
+        boolean arm = name.contains("arm64") || name.contains("aarch");
+        return config.getArchitectures().contains("x86_64") ? !arm : !intel;
     }
 }

@@ -40,7 +40,7 @@ public class PackageMSITask extends DefaultTask {
             "jpackage",
             "--type", "msi",
             "--input", AppHelper.getLibsDir(getProject()).getAbsolutePath(),
-            "--main-jar", config.getMainJarName(getProject()),
+            "--main-jar", config.getMainJarName(),
             "--main-class", config.getMainClassName(),
             "--name", config.getName(),
             "--app-version", config.getVersion(),

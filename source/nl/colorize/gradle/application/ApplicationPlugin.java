@@ -8,6 +8,7 @@ package nl.colorize.gradle.application;
 
 import nl.colorize.gradle.application.macapplicationbundle.CreateApplicationBundleTask;
 import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleExt;
+import nl.colorize.gradle.application.macapplicationbundle.PackageApplicationBundleTask;
 import nl.colorize.gradle.application.macapplicationbundle.SignApplicationBundleTask;
 import nl.colorize.gradle.application.pwa.GeneratePwaTask;
 import nl.colorize.gradle.application.pwa.PwaExt;
@@ -47,9 +48,11 @@ public class ApplicationPlugin implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
         tasks.create("createApplicationBundle", CreateApplicationBundleTask.class);
         tasks.create("signApplicationBundle", SignApplicationBundleTask.class);
+        tasks.create("packageApplicationBundle", PackageApplicationBundleTask.class);
 
         tasks.getByName("signApplicationBundle").dependsOn(tasks.getByName("createApplicationBundle"));
         tasks.getByName("createApplicationBundle").dependsOn("jar");
+        tasks.getByName("packageApplicationBundle").dependsOn("jar");
     }
 
     private void configureWindows(Project project) {

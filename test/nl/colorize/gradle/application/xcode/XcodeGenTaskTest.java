@@ -18,7 +18,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class XcodeGenTaskTest {
 
@@ -36,7 +37,7 @@ class XcodeGenTaskTest {
         task.generateSpecFile(config, specFile);
 
         String expected = """
-            name: Example App
+            name: "Example App"
             options:
               createIntermediateGroups: true
             targets:
@@ -52,10 +53,10 @@ class XcodeGenTaskTest {
                   path: "example/Info.plist"
                   properties:
                     CFBundleDisplayName: "Example App"
-                    CFBundleShortVersionString: "1.0"
-                    CFBundleVersion: "1.0"
+                    CFBundleShortVersionString: $(MARKETING_VERSION)
+                    CFBundleVersion: $(CURRENT_PROJECT_VERSION)
                     UILaunchScreen:
-                      UIColorName: #000000
+                      UIColorName: "#000000"
                     UISupportedInterfaceOrientations~ipad:
                       - UIInterfaceOrientationPortrait
                       - UIInterfaceOrientationPortraitUpsideDown
@@ -91,6 +92,75 @@ class XcodeGenTaskTest {
 
         assertTrue(new File(tempDir, "example").exists());
         assertTrue(new File(tempDir, "HybridResources").exists());
+    }
+
+    @Test
+    void generateAppIcons(@TempDir File tempDir) throws IOException {
+        AppHelper.mkdir(new File(tempDir, "resources"));
+
+        XcodeGenExt config = new XcodeGenExt();
+        config.setAppId("example");
+        config.setBundleId("com.example");
+        config.setAppName("Example App");
+        config.setAppVersion("1.0");
+        config.setIcon(new File("resources/icon.png").getAbsolutePath());
+        config.setResourcesDir("resources");
+
+        XcodeGenTask task = prepareTask(tempDir);
+        task.generateProjectStructure(config, tempDir);
+
+        File iconDir = new File(tempDir, "example/Assets.xcassets/AppIcon.appiconset");
+        File index = new File(iconDir, "Contents.json");
+
+        String expected = """
+            {
+                "images" : [
+                    {
+                        "filename" : "icon-120.png",
+                        "idiom" : "iphone",
+                        "scale" : "2x",
+                        "size" : "60x60"
+                    },
+                    {
+                        "filename" : "icon-180.png",
+                        "idiom" : "iphone",
+                        "scale" : "3x",
+                        "size" : "60x60"
+                    },
+                    {
+                        "filename" : "icon-152.png",
+                        "idiom" : "ipad",
+                        "scale" : "2x",
+                        "size" : "76x76"
+                    },
+                    {
+                        "filename" : "icon-167.png",
+                        "idiom" : "ipad",
+                        "scale" : "2x",
+                        "size" : "83.5x83.5"
+                    },
+                    {
+                        "filename" : "icon-1024.png",
+                        "idiom" : "ios-marketing",
+                        "scale" : "1x",
+                        "size" : "1024x1024"
+                    }
+                ],
+                "info" : {
+                    "author" : "xcode",
+                    "version" : 1
+                }
+            }
+            """;
+
+        assertTrue(iconDir.exists());
+        assertTrue(new File(iconDir, "icon-1024.png").exists());
+        assertTrue(new File(iconDir, "icon-180.png").exists());
+        assertTrue(new File(iconDir, "icon-167.png").exists());
+        assertTrue(new File(iconDir, "icon-152.png").exists());
+        assertTrue(new File(iconDir, "icon-120.png").exists());
+        assertTrue(index.exists());
+        assertEquals(expected, Files.readString(index.toPath(), UTF_8));
     }
 
     private XcodeGenTask prepareTask(File tempDir) {

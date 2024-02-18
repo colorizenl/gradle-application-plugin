@@ -14,7 +14,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -48,10 +50,6 @@ public class AppHelper {
         File buildDir = project.getBuildDir();
         String libsDirName = (String) project.getProperties().get("libsDirName");
         return new File(buildDir, libsDirName);
-    }
-
-    public static String getJarFileName(Project project) {
-        return (String) project.getProperties().get("jar.archiveFileName");
     }
 
     public static void check(boolean condition, String message) {
@@ -100,13 +98,23 @@ public class AppHelper {
                 Files.walk(dir.toPath())
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
+                    .filter(file -> !file.equals(dir))
                     .forEach(File::delete);
             } catch (IOException e) {
                 throw new RuntimeException("Unable to delete: " + dir.getAbsolutePath());
             }
         }
+    }
 
-        dir.mkdir();
+    public static List<File> walk(File start, Predicate<File> filter) {
+        try {
+            return Files.walk(start.toPath())
+                .map(Path::toFile)
+                .filter(filter)
+                .toList();
+        } catch (IOException e) {
+            throw new RuntimeException("Error while walking " + start.getAbsolutePath(), e);
+        }
     }
 
     public static File mkdir(File dir) {
@@ -116,6 +124,13 @@ public class AppHelper {
             }
         }
         return dir;
+    }
+
+    public static void exec(Project project, List<String> command, File workDir) {
+        project.exec(exec -> {
+            exec.commandLine(command);
+            exec.workingDir(workDir);
+        });
     }
 
     public static String loadResourceFile(String path) {
@@ -129,30 +144,15 @@ public class AppHelper {
     }
 
     /**
-     * Loads the specified resource file into a string, and then substitutes
-     * the specified placeholders with the provided values.
+     * Loads a template from the specified classpath resource, then rewrites
+     * the placeholders in the template using the actual values. The
+     * placeholders should use the format "{{name}}".
      */
-    public static String loadResourceFile(String path, Map<String, String> properties) {
-        String contents = loadResourceFile(path);
-        for (Map.Entry<String, String> entry : properties.entrySet()) {
-            contents = contents.replace(entry.getKey(), entry.getValue());
+    public static String rewriteTemplate(String templatePath, Map<String, String> placeholders) {
+        String template = loadResourceFile(templatePath);
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            template = template.replace(entry.getKey(), entry.getValue());
         }
-        return contents;
-    }
-
-    public static void clearOutputDir(File outputDir) {
-        if (!outputDir.exists()) {
-            return;
-        }
-
-        try {
-            Files.walk(outputDir.toPath())
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .filter(file -> !file.equals(outputDir))
-                .forEach(File::delete);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to clear directory: " + outputDir.getAbsolutePath());
-        }
+        return template;
     }
 }

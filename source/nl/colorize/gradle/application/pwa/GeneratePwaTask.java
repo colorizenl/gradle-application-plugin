@@ -31,7 +31,7 @@ public class GeneratePwaTask extends DefaultTask {
         config.validate();
 
         File outputDir = config.getOutputDir(getProject());
-        AppHelper.clearOutputDir(outputDir);
+        AppHelper.cleanDirectory(outputDir);
 
         getProject().copy(copy -> {
             copy.from(config.getWebAppDir());
@@ -87,7 +87,7 @@ public class GeneratePwaTask extends DefaultTask {
             .map(file -> "\"/" + file + "\",\n")
             .collect(Collectors.joining(""));
 
-        return AppHelper.loadResourceFile("service-worker.js", Map.of(
+        return AppHelper.rewriteTemplate("service-worker.js", Map.of(
             "{{cacheName}}", config.getCacheName(),
             "{{resourceFiles}}", resourceFileList
         ));

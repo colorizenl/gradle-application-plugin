@@ -6,69 +6,52 @@
 
 package com.example;
 
-import nl.colorize.multimedialib.renderer.Canvas;
-import nl.colorize.multimedialib.renderer.DisplayMode;
-import nl.colorize.multimedialib.renderer.ErrorHandler;
-import nl.colorize.multimedialib.renderer.FilePointer;
-import nl.colorize.multimedialib.renderer.GraphicsMode;
-import nl.colorize.multimedialib.renderer.Renderer;
-import nl.colorize.multimedialib.renderer.ScaleStrategy;
-import nl.colorize.multimedialib.renderer.WindowOptions;
-import nl.colorize.multimedialib.renderer.java2d.Java2DRenderer;
-import nl.colorize.multimedialib.renderer.libgdx.GDXRenderer;
-import nl.colorize.multimedialib.stage.ColorRGB;
-import nl.colorize.multimedialib.stage.Image;
-import nl.colorize.multimedialib.stage.Sprite;
-import nl.colorize.multimedialib.scene.Scene;
-import nl.colorize.multimedialib.scene.SceneContext;
-import nl.colorize.util.swing.ApplicationMenuListener;
+import javax.imageio.ImageIO;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Example application that displays an extremely simple MultimediaLib scene.
- * This acts as a "real" application that is included in the plugin code,
- * both for testing purposes and as an example on how to use the plugin.
+ * Example application that displays an extremely simple Swing user interface.
+ * This is included in the plugin code so that the plugin can be tested from
+ * a Gradle build.
  */
-public class ExampleApp implements Scene, ApplicationMenuListener {
+public class ExampleApp extends JPanel {
+
+    private BufferedImage logo;
 
     public static void main(String[] args) {
-        ExampleApp app = new ExampleApp();
+        JFrame window = new JFrame();
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setResizable(true);
+        window.setTitle("Example");
+        window.setContentPane(new ExampleApp());
+        window.pack();
+        window.setLocationRelativeTo(null);
+        window.setVisible(true);
+    }
 
-        Canvas canvas = new Canvas(800, 600, ScaleStrategy.flexible());
-        DisplayMode displayMode = new DisplayMode(canvas, 60);
+    public ExampleApp() {
+        super();
+        setLayout(null);
+        setPreferredSize(new Dimension(800, 600));
+        setBackground(new Color(235, 235, 235));
 
-        WindowOptions windowOptions = new WindowOptions("Example");
-        windowOptions.setAppMenuListener(app);
-
-        if (args.length > 0 && args[0].contains("java2d")) {
-            windowOptions.setTitle(windowOptions.getTitle() + " (Java2D renderer)");
-            Renderer renderer = new Java2DRenderer(displayMode, windowOptions);
-            renderer.start(app, ErrorHandler.DEFAULT);
-        } else {
-            Renderer renderer = new GDXRenderer(GraphicsMode.MODE_2D, displayMode, windowOptions);
-            renderer.start(app, ErrorHandler.DEFAULT);
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("icon.png")) {
+            logo = ImageIO.read(stream);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load image", e);
         }
     }
 
     @Override
-    public void start(SceneContext context) {
-        context.getStage().setBackgroundColor(new ColorRGB(235, 235, 235));
-
-        Image icon = context.getMediaLoader().loadImage(new FilePointer("icon.png"));
-        Sprite sprite = new Sprite(icon);
-        sprite.setPosition(context.getCanvas().getWidth() / 2f, context.getCanvas().getHeight() / 2f);
-        sprite.getTransform().setScale(25);
-        context.getStage().getRoot().addChild(sprite);
-    }
-
-    @Override
-    public void update(SceneContext context, float deltaTime) {
-    }
-
-    @Override
-    public void onQuit() {
-    }
-
-    @Override
-    public void onAbout() {
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.drawImage(logo, getWidth() / 2 - 100, getHeight() / 2 - 100, 200, 200, null);
     }
 }

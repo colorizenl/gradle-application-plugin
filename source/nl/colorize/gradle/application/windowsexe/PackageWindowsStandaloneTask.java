@@ -134,7 +134,7 @@ public class PackageWindowsStandaloneTask extends DefaultTask {
 
     private File getMainJarFile(WindowsStandaloneExt config) {
         Project project = getProject();
-        File jarFile = new File(AppHelper.getLibsDir(project), config.getMainJarName(project));
+        File jarFile = new File(AppHelper.getLibsDir(project), config.getMainJarName());
         AppHelper.check(jarFile.exists(), "Cannot locate JAR file: " + jarFile.getAbsolutePath());
         return jarFile;
     }

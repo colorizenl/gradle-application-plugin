@@ -73,7 +73,7 @@ public class GenerateStaticSiteTask extends DefaultTask {
             outputDir.mkdir();
         }
 
-        AppHelper.clearOutputDir(outputDir);
+        AppHelper.cleanDirectory(outputDir);
 
         templateCache.clear();
     }
