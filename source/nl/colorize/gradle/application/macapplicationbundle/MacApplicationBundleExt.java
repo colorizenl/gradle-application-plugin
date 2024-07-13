@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Data
 public class MacApplicationBundleExt implements Validatable {
@@ -38,7 +39,6 @@ public class MacApplicationBundleExt implements Validatable {
     private List<String> additionalModules;
     private List<String> options;
     private List<String> args;
-    private boolean startOnFirstThread;
     private String jdkPath;
     private String launcher;
     private boolean signNativeLibraries;
@@ -46,14 +46,6 @@ public class MacApplicationBundleExt implements Validatable {
 
     public static final String SIGN_APP_ENV = "MAC_SIGN_APP_IDENTITY";
     public static final String SIGN_INSTALLER_ENV = "MAC_SIGN_INSTALLER_IDENTITY";
-
-    private static final List<String> SUPPORTED_EMBEDDED_JDKS = List.of(
-        "temurin-21.jdk",
-        "temurin-m1-21.jdk",
-        "temurin-17.jdk",
-        "temurin-m1-17.jdk",
-        "adoptopenjdk-11.jdk"
-    );
 
     private static final List<String> DEFAULT_MODULES = List.of(
         "java.base",
@@ -69,6 +61,7 @@ public class MacApplicationBundleExt implements Validatable {
         description = "";
         copyright = "Copyright " + new SimpleDateFormat("yyyy").format(new Date());
         bundleVersion = "1.0";
+        applicationCategory = "public.app-category.utilities";
         
         minimumSystemVersion = "10.13";
         architectures = List.of("arm64", "x86_64");
@@ -76,8 +69,8 @@ public class MacApplicationBundleExt implements Validatable {
         additionalModules = Collections.emptyList();
         options = List.of("-Xmx2g");
         args = Collections.emptyList();
-        startOnFirstThread = false;
-        jdkPath = AppHelper.getEnvironmentVariable("JAVA_HOME");
+        jdkPath = Optional.ofNullable(System.getenv("EMBEDDED_JAVA_HOME"))
+            .orElse(AppHelper.getEnvironmentVariable("JAVA_HOME"));
         launcher = "native";
         signNativeLibraries = false;
         outputDir = "mac";
@@ -110,22 +103,14 @@ public class MacApplicationBundleExt implements Validatable {
     protected File locateEmbeddedJDK(Project project) {
         File appBundle = locateApplicationBundle(project);
         File pluginsDir = new File(appBundle.getAbsolutePath() + "/Contents/PlugIns");
-        File embeddedJDK = new File(pluginsDir, getEmbeddedJdkName());
 
-        if (!embeddedJDK.exists()) {
-            throw new IllegalStateException("Cannot locate embedded JDK in " +
-                embeddedJDK.getAbsolutePath());
+        for (File pluginDir : pluginsDir.listFiles(File::isDirectory)) {
+            String plugin = pluginDir.getName();
+            if (plugin.startsWith("jdk-") || plugin.startsWith("temurin-")) {
+                return pluginDir;
+            }
         }
 
-        return embeddedJDK;
-    }
-
-    private String getEmbeddedJdkName() {
-        String javaHome = System.getenv("JAVA_HOME");
-
-        return MacApplicationBundleExt.SUPPORTED_EMBEDDED_JDKS.stream()
-            .filter(javaHome::contains)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unsupported JDK: " + javaHome));
+        throw new RuntimeException("Cannot locate embedded JDK in " + appBundle.getAbsolutePath());
     }
 }

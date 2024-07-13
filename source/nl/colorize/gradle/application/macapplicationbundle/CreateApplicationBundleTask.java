@@ -12,7 +12,6 @@ import com.oracle.appbundler.Argument;
 import com.oracle.appbundler.JLink;
 import com.oracle.appbundler.JMod;
 import com.oracle.appbundler.Option;
-import com.oracle.appbundler.Runtime;
 import nl.colorize.gradle.application.AppHelper;
 import org.apache.tools.ant.types.FileSet;
 import org.gradle.api.DefaultTask;
@@ -29,6 +28,11 @@ import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Creates a Mac application bundle that includes both the application and
+ * an embedded Java runtime. This is basically a wrapper around the
+ * {@code appbundler} Ant task, so that it can be used in Gradle projects.
+ */
 public class CreateApplicationBundleTask extends DefaultTask {
 
     @TaskAction
@@ -60,24 +64,18 @@ public class CreateApplicationBundleTask extends DefaultTask {
         task.setDisplayName(getDisplayName(config));
         task.setIdentifier(config.getIdentifier());
         task.setDescription(config.getDescription());
-        task.setVersion(getVersion(config));
-        task.setShortVersion(getShortVersion(config));
+        task.setVersion(System.getProperty("buildversion", config.getBundleVersion()));
+        task.setShortVersion(System.getProperty("shortversion", config.getBundleVersion()));
         task.setCopyright(config.getCopyright());
         task.setIcon(new File(config.getIcon()));
-        if (config.getApplicationCategory() != null) {
-            task.setApplicationCategory(config.getApplicationCategory());
-        }
+        task.setApplicationCategory(config.getApplicationCategory());
         task.setMinimumSystemVersion(config.getMinimumSystemVersion());
         task.setMainClassName(config.getMainClassName());
         config.getArchitectures().forEach(arch -> task.addConfiguredArch(toArch(arch)));
         task.addConfiguredClassPath(createClassPath(config));
         getCombinedOptions(config).forEach(option -> task.addConfiguredOption(createOption(option)));
         config.getArgs().forEach(arg -> task.addConfiguredArgument(createArg(arg)));
-        if (config.getModules().isEmpty()) {
-            task.addConfiguredRuntime(createRuntime(jdk));
-        } else {
-            task.addConfiguredJLink(createJLink(config, jdk));
-        }
+        task.addConfiguredJLink(createJLink(config, jdk));
         task.perform();
     }
 
@@ -85,9 +83,6 @@ public class CreateApplicationBundleTask extends DefaultTask {
         List<String> combinedOptions = new ArrayList<>();
         combinedOptions.add("-Xdock:name='" + getDisplayName(config) + "'");
         combinedOptions.add("-Xdock:icon='Contents/Resources/icon.icns'");
-        if (config.isStartOnFirstThread()) {
-            combinedOptions.add("-XstartOnFirstThread");
-        }
         combinedOptions.addAll(config.getOptions());
         return combinedOptions;
     }
@@ -139,12 +134,6 @@ public class CreateApplicationBundleTask extends DefaultTask {
         return jLink;
     }
 
-    private Runtime createRuntime(File jdk) {
-        Runtime runtime = new Runtime();
-        runtime.setDir(jdk);
-        return runtime;
-    }
-
     private Architecture toArch(String arch) {
         Architecture result = new Architecture();
         result.setName(arch);
@@ -157,20 +146,6 @@ public class CreateApplicationBundleTask extends DefaultTask {
             displayName = config.getName();
         }
         return displayName;
-    }
-
-    private String getVersion(MacApplicationBundleExt config) {
-        if (System.getProperty("buildversion") != null) {
-            return System.getProperty("buildversion");
-        }
-        return config.getBundleVersion();
-    }
-
-    private String getShortVersion(MacApplicationBundleExt config) {
-        if (System.getProperty("shortversion") != null) {
-            return System.getProperty("shortversion");
-        }
-        return config.getBundleVersion();
     }
 
     /**

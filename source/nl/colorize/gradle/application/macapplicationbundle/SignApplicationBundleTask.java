@@ -20,6 +20,12 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * Signs the Mac application bundle from {@link CreateApplicationBundleTask}.
+ * This is done using the {@code codesign} command line tool that is installed
+ * as part of Xcode. This tool, and therefore this Gradle task, is only
+ * supported on Mac.
+ */
 public class SignApplicationBundleTask extends DefaultTask {
 
     private static final String ENTITLEMENTS_APP = "entitlements-app.plist";
@@ -51,11 +57,6 @@ public class SignApplicationBundleTask extends DefaultTask {
 
         for (File file : AppHelper.walk(appBundle, this::isNativeBinary)) {
             sign(file, jreEntitlements);
-        }
-
-        File shellLauncher = new File(appBundle, "/Contents/MacOS/ColorizeLauncher");
-        if (shellLauncher.exists()) {
-            //sign(shellLauncher, appEntitlements);
         }
 
         sign(embeddedJDK, jreEntitlements);

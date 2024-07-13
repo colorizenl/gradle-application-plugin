@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,15 +42,9 @@ public class AppHelper {
     }
 
     public static File getLibsDir(Project project) {
-        File libsDir = (File) project.getProperties().get("libsDir");
-        if (libsDir != null) {
-            return libsDir;
-        }
-
         // Gradle 7 and higher no longer have the libsDir property.
-        File buildDir = project.getBuildDir();
         String libsDirName = (String) project.getProperties().get("libsDirName");
-        return new File(buildDir, libsDirName);
+        return new File(project.getBuildDir(), libsDirName);
     }
 
     public static void check(boolean condition, String message) {
@@ -124,13 +119,6 @@ public class AppHelper {
             }
         }
         return dir;
-    }
-
-    public static void exec(Project project, List<String> command, File workDir) {
-        project.exec(exec -> {
-            exec.commandLine(command);
-            exec.workingDir(workDir);
-        });
     }
 
     public static String loadResourceFile(String path) {

@@ -71,6 +71,7 @@ public class XcodeGenTask extends DefaultTask {
         File appDir = AppHelper.mkdir(new File(outputDir, ext.getAppId()));
 
         File resourcesDir = AppHelper.mkdir(new File(outputDir, "HybridResources"));
+        AppHelper.cleanDirectory(resourcesDir);
         copyResources(ext, resourcesDir);
 
         String swiftCode = AppHelper.loadResourceFile("App.swift");

@@ -6,7 +6,7 @@ import SwiftUI
 import WebKit
 
 @main
-struct Test_AppApp: App {
+struct HybridWebApp: App {
     var body: some Scene {
         WindowGroup {
             HybridWebView()
@@ -21,16 +21,30 @@ struct HybridWebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let preferences: WKPreferences = WKPreferences()
         preferences.javaScriptEnabled = true
+        preferences.setValue(true, forKey: "developerExtrasEnabled")
+        
+        let scriptController: WKUserContentController = WKUserContentController()
+        scriptController.addUserScript(WKUserScript(source: generateBridge(),
+            injectionTime: .atDocumentEnd, forMainFrameOnly: false))
 
         let config: WKWebViewConfiguration = WKWebViewConfiguration()
         config.preferences = preferences
+        config.userContentController = scriptController
         config.setValue(true, forKey: "_allowUniversalAccessFromFileURLs")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.scrollView.contentInsetAdjustmentBehavior = .never
+        if #available(iOS 16.4, *) {
+            webView.isInspectable = true
+        }
+        
+        let scriptBridge = ScriptBridge(webView: webView)
+        scriptController.add(scriptBridge, name: "loadPreferences")
+        scriptController.add(scriptBridge, name: "savePreferences")
+        
         return webView
     }
-
+    
     func updateUIView(_ webView: WKWebView, context: Context) {
         DispatchQueue.main.async {
             let index = "HybridResources/index"
@@ -38,5 +52,52 @@ struct HybridWebView: UIViewRepresentable {
             let url = URL(fileURLWithPath: path)
             webView.loadFileURL(url, allowingReadAccessTo: url)
         }
+    }
+    
+    func generateBridge() -> String {
+        return """
+            window.loadPreferences = function(appName) {
+                window.webkit.messageHandlers.loadPreferences.postMessage({appName});
+            };
+            
+            window.savePreferences = function(appName, name, value) {
+                window.webkit.messageHandlers.savePreferences.postMessage({appName, name, value});
+            };
+        """
+    }
+}
+
+class ScriptBridge: NSObject, WKScriptMessageHandler {
+    var webView: WKWebView
+    
+    init(webView: WKWebView) {
+        self.webView = webView
+    }
+    
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+        let body: NSDictionary = message.body as! NSDictionary
+        let appName: String = body["appName"] as! String;
+                               
+        if message.name == "loadPreferences" {
+            loadPreferences(body)
+        } else if message.name == "savePreferences" {
+            savePreferences(body)
+        }
+    }
+    
+    func loadPreferences(_ body: NSDictionary) {
+        for key in UserDefaults.standard.dictionaryRepresentation().keys {
+            let value = UserDefaults.standard.string(forKey: key)
+            if value != nil {
+                webView.evaluateJavaScript("window.localStorage.setItem('\(key)', '\(value!)');");
+            }
+        }
+    }
+    
+    func savePreferences(_ body: NSDictionary) {
+        let name: String = body["name"] as! String;
+        let value: String = body["value"] as! String;
+        UserDefaults.standard.set(value, forKey: name)
     }
 }

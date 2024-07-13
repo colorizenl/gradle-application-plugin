@@ -32,10 +32,9 @@ to be available in the build environment:
 |-----------------|---------------------|-------------------------------------------------------------|
 | Windows MSI     | Windows             | [WIX Toolset](https://wixtoolset.org)                       |
 | Windows EXE     | Windows, Mac, Linux | [Launch4j](https://launch4j.sourceforge.net)                |
-| Mac             | Mac                 | [Xcode](https://developer.apple.com/xcode/)                 |
-| iOS             | Mac                 | [Xcode](https://developer.apple.com/xcode/)                 |
-|                 |                     | [XcodeGen](https://github.com/yonaskolb/XcodeGen)           |
-| Android         | Mac                 | [Android SDK](https://developer.android.com/sdk/index.html) |
+| Mac             | Mac                 | Xcode                                                       |
+| iOS             | Mac                 | Xcode, [XcodeGen](https://github.com/yonaskolb/XcodeGen)    |
+| Android         | Windows, Mac, Linux | Android SDK                                                 |
 
 Usage
 -----
@@ -44,7 +43,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2024.4"
+        id "nl.colorize.gradle.application" version "2024.5"
     }
 
 Building native Mac application bundles
@@ -99,7 +98,6 @@ The following configuration options are available:
 | `additionalModules`    | no       | Extends default list of embedded JDK modules.                   | 
 | `options`              | no       | List of JVM command line options.                               |
 | `args`                 | no       | List of command line arguments provided to the main class.      |
-| `startOnFirstThread`   | no       | When true, starts the application with `-XstartOnFirstThread`.  |
 | `icon`                 | yes      | Location of the `.icns` file.                                   |
 | `launcher`             | no       | Generated launcher type. Either "native" (default) or "shell".  |
 | `signNativeLibraries`  | no       | Signs native libraries embedded in the application's JAR files. |
@@ -110,12 +108,12 @@ the bundle size. The list of JDK modules can be extended using the `additionalMo
 or replaced entirely using the `modules` property. By default, the following JDK modules are
 included in the runtime:
 
-- java.base
-- java.desktop
-- java.logging
-- java.net.http
-- java.sql
-- jdk.crypto.ec
+- `java.base`
+- `java.desktop`
+- `java.logging`
+- `java.net.http`
+- `java.sql`
+- `jdk.crypto.ec`
 
 Mac applications use two different version numbers: The application version and the build version.
 By default, both are based on the `bundleVersion` property. It is possible to specify the build
@@ -128,10 +126,9 @@ identity. The name of this identity can be set using the `MAC_SIGN_APP_IDENTITY`
 `MAC_SIGN_INSTALLER_IDENTITY` environment variables, for signing applications and installers
 respectively.
 
-By default, the contents of the application will be based on all JAR files produces by the
-project, as described by the `libsDir` property. This behavior can be replaced by setting the 
-`contentDir` property in the plugin's configuration. The easiest way to bundle all content, 
-including  application binaries, resources, and libraries, is to create a single "fat JAR" file:
+You will need to provide a "fat JAR" that defines a main class, and contains both your application
+and all of its dependencies. The following example shows how to turn your project's default JAR
+file into a fat JAR:
 
 ```
     jar {
@@ -151,6 +148,11 @@ including  application binaries, resources, and libraries, is to create a single
         }
      }
 ```
+
+There are alternative ways to create a fat JAR, if you need to retain the project's "normal"
+JAR file: You can [create a Gradle task](https://stackoverflow.com/a/61198352/79505) that will
+create the fat JAR in in addition to the normal JAR. You can also use the
+[Gradle shadow JAR plugin](https://github.com/Goooler/shadow) to achieve the same effect.
     
 The plugin adds a number of tasks to the project that use this configuration:
 
