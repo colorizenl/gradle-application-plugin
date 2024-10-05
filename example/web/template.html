@@ -5,6 +5,7 @@
         <title>Example</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width, user-scalable=no" />
         <link rel="stylesheet" href="example.css" />
+        <script src="example.js"></script>
     </head>
 
     <body>
@@ -13,16 +14,21 @@
         <div id="ajaxImage">
             Loading image using JavaScript...
         </div>
-        
-        <script>
-            document.addEventListener("DOMContentLoaded", event => {
-                const image = document.createElement("img");
-                image.addEventListener("load", () => {
-                    const description = "Loaded image size: " + image.width + "x" + image.height;
-                    document.getElementById("ajaxImage").innerText = description;
-                });
-                image.src = "images/icon.png";
-            });
-        </script>
+
+        <form onsubmit="event.preventDefault()">
+            <a href="https://clrz.nl" target="_blank">External link</a>
+            <button onclick="window.openInNativeBrowser('https://clrz.nl')">Native browser</button>
+        </form>
+
+        <form onsubmit="event.preventDefault()">
+            <input id="shareText" type="text" />
+            <button onclick="window.shareText()">Share</button>
+        </form>
+
+        <form onsubmit="event.preventDefault()">
+            <input id="storageField" type="text" />
+            <button onclick="window.loadStorageText()">Load app storage</button>
+            <button onclick="window.saveStorageText()">Save app storage</button>
+        </form>
     </body>
 </html>

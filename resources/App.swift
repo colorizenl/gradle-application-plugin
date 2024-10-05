@@ -30,7 +30,7 @@ struct HybridWebView: UIViewRepresentable {
         let config: WKWebViewConfiguration = WKWebViewConfiguration()
         config.preferences = preferences
         config.userContentController = scriptController
-        config.setValue(true, forKey: "_allowUniversalAccessFromFileURLs")
+        config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -39,8 +39,10 @@ struct HybridWebView: UIViewRepresentable {
         }
         
         let scriptBridge = ScriptBridge(webView: webView)
+        scriptController.add(scriptBridge, name: "openNativeBrowser")
         scriptController.add(scriptBridge, name: "loadPreferences")
         scriptController.add(scriptBridge, name: "savePreferences")
+        webView.navigationDelegate = scriptBridge
         
         return webView
     }
@@ -56,36 +58,55 @@ struct HybridWebView: UIViewRepresentable {
     
     func generateBridge() -> String {
         return """
-            window.loadPreferences = function(appName) {
-                window.webkit.messageHandlers.loadPreferences.postMessage({appName});
-            };
-            
-            window.savePreferences = function(appName, name, value) {
-                window.webkit.messageHandlers.savePreferences.postMessage({appName, name, value});
+            window.clrz = {
+                openNativeBrowser: function(url) {
+                    window.webkit.messageHandlers.openNativeBrowser.postMessage({url});
+                },
+                loadPreferences: function() {
+                    window.webkit.messageHandlers.loadPreferences.postMessage({});
+                },
+                savePreferences: function(name, value) {
+                    window.webkit.messageHandlers.savePreferences.postMessage({name, value});
+                }
             };
         """
     }
 }
 
-class ScriptBridge: NSObject, WKScriptMessageHandler {
+class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     var webView: WKWebView
     
     init(webView: WKWebView) {
         self.webView = webView
     }
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
+                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if let url = navigationAction.request.url {
+            if url.absoluteString.starts(with: "https://") {
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
+        }
+
+        decisionHandler(.allow)
+    }
     
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
         let body: NSDictionary = message.body as! NSDictionary
-        let appName: String = body["appName"] as! String;
-                               
-        if message.name == "loadPreferences" {
+
+        if message.name == "openNativeBrowser" {
+            let url: String = body["url"] as! String;
+            UIApplication.shared.open(URL(string: url)!)
+        } else if message.name == "loadPreferences" {
             loadPreferences(body)
         } else if message.name == "savePreferences" {
             savePreferences(body)
         }
     }
-    
+
     func loadPreferences(_ body: NSDictionary) {
         for key in UserDefaults.standard.dictionaryRepresentation().keys {
             let value = UserDefaults.standard.string(forKey: key)

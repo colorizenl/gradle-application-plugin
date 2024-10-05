@@ -19,14 +19,8 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Creates a Mac application bundle that includes both the application and
@@ -50,10 +44,6 @@ public class CreateApplicationBundleTask extends DefaultTask {
         File outputDir = config.getOutputDir(getProject());
         AppHelper.cleanDirectory(outputDir);
         bundle(config, jdk, outputDir);
-
-        if (config.getLauncher().equals("shell")) {
-            generateShellLauncher(config, jdk);
-        }
     }
 
     private void bundle(MacApplicationBundleExt config, File jdk, File outputDir) {
@@ -146,44 +136,5 @@ public class CreateApplicationBundleTask extends DefaultTask {
             displayName = config.getName();
         }
         return displayName;
-    }
-
-    /**
-     * Generates a Shell script that launches the application. This will then
-     * be used instead of the normal native launcher executable, which has
-     * compatibility problems with some applications.
-     */
-    private void generateShellLauncher(MacApplicationBundleExt config, File jdk) {
-        File appBundle = config.locateApplicationBundle(getProject());
-        Path embeddedJDK = config.locateEmbeddedJDK(getProject()).toPath();
-
-        Map<String, String> launcherProperties = Map.of(
-            "{{jdk}}", embeddedJDK.getFileName().toString(),
-            "{{jarFileName}}", config.getMainJarName(),
-            "{{appName}}", config.getName(),
-            "{{appArgs}}", String.join(" ", config.getArgs())
-        );
-
-        try {
-            File launcher = new File(appBundle, "/Contents/MacOS/ColorizeLauncher");
-            String template = AppHelper.rewriteTemplate("launcher.sh", launcherProperties);
-            Files.writeString(launcher.toPath(), template, UTF_8);
-            launcher.setExecutable(true, false);
-
-            File plistFile = new File(appBundle, "/Contents/Info.plist");
-            String plist = Files.readString(plistFile.toPath(), UTF_8);
-            plist = plist.replace("<string>JavaAppLauncher</string>", "<string>ColorizeLauncher</string>");
-            Files.writeString(plistFile.toPath(), plist, UTF_8);
-
-            // JavaAppLauncher doesn't need the Java binary,
-            // but the shell script does.
-            Files.createDirectory(embeddedJDK.resolve("Contents/Home/bin"));
-            Files.copy(jdk.toPath().resolve("bin/java"), embeddedJDK.resolve("Contents/Home/bin/java"));
-
-            File nativeLauncher = new File(appBundle, "/Contents/MacOS/JavaAppLauncher");
-            nativeLauncher.delete();
-        } catch (IOException e) {
-            throw new RuntimeException("Error while generating shell launcher", e);
-        }
     }
 }

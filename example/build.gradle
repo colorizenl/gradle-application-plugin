@@ -58,7 +58,7 @@ xcode {
     appId = "Example"
     bundleId = "com.example"
     appName = "Example App"
-    appVersion = "0.1"
+    bundleVersion = "0.1"
     icon = "../resources/icon.png"
     resourcesDir = "${buildDir}/staticsite"
 }
@@ -106,12 +106,3 @@ task fatJar(type: Jar) {
 createApplicationBundle.dependsOn fatJar
 generatePWA.dependsOn generateStaticSite
 xcodeGen.dependsOn generateStaticSite
-
-task allMac(dependsOn: ["signApplicationBundle", "xcodeGen", "packageEXE", "generateStaticSite", "generatePWA"]) {
-}
-
-task allWindows(dependsOn: ["packageMSI", "packageEXE", "generateStaticSite", "generatePWA"]) {
-}
-
-task allLinux(dependsOn: ["generateStaticSite", "generatePWA"]) {
-}

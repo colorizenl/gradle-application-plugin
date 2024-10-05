@@ -92,7 +92,7 @@ public class XcodeGenTask extends DefaultTask {
             "{{deploymentTarget}}", ext.getDeploymentTarget(),
             "{{launchScreenColor}}", ext.getLaunchScreenColor(),
             "{{bundleId}}", ext.getBundleId(),
-            "{{appVersion}}", ext.getAppVersion(),
+            "{{appVersion}}", ext.getBundleVersion(),
             "{{buildVersion}}", ext.getBuildVersion()
         );
 

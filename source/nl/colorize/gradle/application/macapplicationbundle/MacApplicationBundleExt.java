@@ -40,7 +40,6 @@ public class MacApplicationBundleExt implements Validatable {
     private List<String> options;
     private List<String> args;
     private String jdkPath;
-    private String launcher;
     private boolean signNativeLibraries;
     private String outputDir;
 
@@ -71,7 +70,6 @@ public class MacApplicationBundleExt implements Validatable {
         args = Collections.emptyList();
         jdkPath = Optional.ofNullable(System.getenv("EMBEDDED_JAVA_HOME"))
             .orElse(AppHelper.getEnvironmentVariable("JAVA_HOME"));
-        launcher = "native";
         signNativeLibraries = false;
         outputDir = "mac";
     }
@@ -91,9 +89,6 @@ public class MacApplicationBundleExt implements Validatable {
         File jdk = new File(jdkPath);
         AppHelper.check(jdk.exists(), "JDK not found: " + jdk.getAbsolutePath());
         AppHelper.check(jdk.getName().equals("Home"), "JDK should point to /Contents/Home");
-
-        AppHelper.check(List.of("native", "shell").contains(launcher),
-            "Unknown launcher type in macApplicationBundle.launcher");
     }
 
     protected File locateApplicationBundle(Project project) {
@@ -101,8 +96,12 @@ public class MacApplicationBundleExt implements Validatable {
     }
 
     protected File locateEmbeddedJDK(Project project) {
-        File appBundle = locateApplicationBundle(project);
-        File pluginsDir = new File(appBundle.getAbsolutePath() + "/Contents/PlugIns");
+        File appBundleDir = locateApplicationBundle(project);
+        return locateEmbeddedJDK(appBundleDir);
+    }
+
+    protected File locateEmbeddedJDK(File appBundleDir) {
+        File pluginsDir = new File(appBundleDir.getAbsolutePath() + "/Contents/PlugIns");
 
         for (File pluginDir : pluginsDir.listFiles(File::isDirectory)) {
             String plugin = pluginDir.getName();
@@ -111,6 +110,6 @@ public class MacApplicationBundleExt implements Validatable {
             }
         }
 
-        throw new RuntimeException("Cannot locate embedded JDK in " + appBundle.getAbsolutePath());
+        throw new RuntimeException("Cannot locate embedded JDK: " + appBundleDir.getAbsolutePath());
     }
 }

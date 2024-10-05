@@ -43,7 +43,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2024.5"
+        id "nl.colorize.gradle.application" version "2024.6"
     }
 
 Building native Mac application bundles
@@ -75,7 +75,6 @@ The following shows an example on how to define this configuration in Gradle:
         mainClassName = "com.example.app.Main"
         outputDir = "${buildDir}"
         options = ["-Xmx2g"]
-        startOnFirstThread = false
     }
 
 The following configuration options are available:
@@ -99,7 +98,6 @@ The following configuration options are available:
 | `options`              | no       | List of JVM command line options.                               |
 | `args`                 | no       | List of command line arguments provided to the main class.      |
 | `icon`                 | yes      | Location of the `.icns` file.                                   |
-| `launcher`             | no       | Generated launcher type. Either "native" (default) or "shell".  |
 | `signNativeLibraries`  | no       | Signs native libraries embedded in the application's JAR files. |
 | `outputDir`            | no       | Output directory path, defaults to `build/mac`.                 |
 
@@ -131,22 +129,22 @@ and all of its dependencies. The following example shows how to turn your projec
 file into a fat JAR:
 
 ```
-    jar {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        exclude "**/module-info.class"
-        exclude "**/META-INF/INDEX.LIST"
-        exclude "**/META-INF/*.SF"
-        exclude "**/META-INF/*.DSA"
-        exclude "**/META-INF/*.RSA"
-        
-        manifest {
-            attributes "Main-Class": "com.example.ExampleApp"
-        }
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude "**/module-info.class"
+    exclude "**/META-INF/INDEX.LIST"
+    exclude "**/META-INF/*.SF"
+    exclude "**/META-INF/*.DSA"
+    exclude "**/META-INF/*.RSA"
     
-        from {
-            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-        }
-     }
+    manifest {
+        attributes "Main-Class": "com.example.ExampleApp"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
 ```
 
 There are alternative ways to create a fat JAR, if you need to retain the project's "normal"
@@ -264,7 +262,7 @@ The following configuration options are available via the `xcode` section:
 | `appId`               | yes      | App ID in the form MyApp.                                         |
 | `bundleId`            | yes      | Apple bundleID in the form com.example.                           |
 | `appName`             | yes      | App display name in the form My App.                              |
-| `appVersion`          | yes      | App version number in the form 1.2.3.                             |
+| `bundleVersion`       | yes      | Version number in the form 1.2.3.                                 |
 | `icon`                | yes      | PNG file that will be used to generate the app icons.             |
 | `iconBackgroundColor` | no       | Color used to replace the icon alpha channel, e.g. #000000.       |
 | `resourcesDir`        | yes      | Directory to copy into the app's resources.                       |
@@ -275,6 +273,22 @@ The following configuration options are available via the `xcode` section:
 Like the Mac application bundle, the `buildversion` system property can be used to set the build
 version during the build. If this system property is not present, the build version is the same
 as the app version.
+
+### Communication between native code and JavaScript
+
+It is common for hybrid mobile apps to feature some kind of interaction between the native code
+and the web application's JavaScript. The generated Xcode project therefore includes some bindings
+for common tasks, which can be called from JavaScript:
+
+- `clrz.openNativeBrowser(url)` opens a link in the native browser (i.e. Mobile Safari),
+  rather than in the web view. Note that external links will be opened in the native browser
+  by default.
+- `clrz.loadPreferences()` will load the native app store into the web application's
+  [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). This can
+  be used for persistent data, since iOS aggressively cleans up local storage for infrequently
+  used apps.
+- `clrz.savePreferences(name, value)` can be used to save name/value pairs to the native app
+  storage.
 
 Building PWAs
 -------------
@@ -369,8 +383,6 @@ The plugin comes with an example application, that can be used to test the plugi
   - Run `gradle xcodeGen` to generate a Xcode project for a hybrid iOS app.
   - Run `gradle generateStaticSite` to generate a website from Markdown templates.
   - Run `gradle generatePWA` to create a PWA version of the aforementioned website.
-  - The shorthand tasks `gradle allMac`, `gradle allWindows`, and `gradle allLinux` can be used
-    to build all application types that are supported on that platform.
     
 Building the example application uses the same system requirements and environment variables as
 the plugin itself. Refer to the documentation for each application type for details.

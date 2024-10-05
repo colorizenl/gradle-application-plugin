@@ -29,7 +29,7 @@ class XcodeGenTaskTest {
         config.setAppId("example");
         config.setBundleId("com.example");
         config.setAppName("Example App");
-        config.setAppVersion("1.0");
+        config.setBundleVersion("1.0");
         config.setIcon("resources/icon.png");
 
         XcodeGenTask task = prepareTask(tempDir);
@@ -83,7 +83,7 @@ class XcodeGenTaskTest {
         config.setAppId("example");
         config.setBundleId("com.example");
         config.setAppName("Example App");
-        config.setAppVersion("1.0");
+        config.setBundleVersion("1.0");
         config.setIcon(new File("resources/icon.png").getAbsolutePath());
         config.setResourcesDir("resources");
 
@@ -102,7 +102,7 @@ class XcodeGenTaskTest {
         config.setAppId("example");
         config.setBundleId("com.example");
         config.setAppName("Example App");
-        config.setAppVersion("1.0");
+        config.setBundleVersion("1.0");
         config.setIcon(new File("resources/icon.png").getAbsolutePath());
         config.setResourcesDir("resources");
 

@@ -16,7 +16,7 @@ public class XcodeGenExt implements Validatable {
     private String appId;
     private String bundleId;
     private String appName;
-    private String appVersion;
+    private String bundleVersion;
     private String icon;
     private String iconBackgroundColor;
     private String deploymentTarget;
@@ -38,7 +38,7 @@ public class XcodeGenExt implements Validatable {
         AppHelper.check(appId != null, "Missing xcodeGen.appId");
         AppHelper.check(bundleId != null, "Missing xcodeGen.bundleId");
         AppHelper.check(appName != null, "Missing xcodeGen.appName");
-        AppHelper.check(appVersion != null, "Missing xcodeGen.appVersion");
+        AppHelper.check(bundleVersion != null, "Missing xcodeGen.bundleVersion");
         AppHelper.check(icon != null, "Missing xcodeGen.icon");
         AppHelper.check(resourcesDir != null, "Missing xcodeGen.resourcesDir");
 
@@ -46,6 +46,6 @@ public class XcodeGenExt implements Validatable {
     }
 
     public String getBuildVersion() {
-        return System.getProperty("buildversion", appVersion);
+        return System.getProperty("buildversion", bundleVersion);
     }
 }
