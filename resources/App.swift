@@ -42,6 +42,9 @@ struct HybridWebView: UIViewRepresentable {
         scriptController.add(scriptBridge, name: "openNativeBrowser")
         scriptController.add(scriptBridge, name: "loadPreferences")
         scriptController.add(scriptBridge, name: "savePreferences")
+        scriptController.add(scriptBridge, name: "requestNotifications")
+        scriptController.add(scriptBridge, name: "scheduleNotification")
+        scriptController.add(scriptBridge, name: "cancelNotification")
         webView.navigationDelegate = scriptBridge
         
         return webView
@@ -67,20 +70,31 @@ struct HybridWebView: UIViewRepresentable {
                 },
                 savePreferences: function(name, value) {
                     window.webkit.messageHandlers.savePreferences.postMessage({name, value});
+                },
+                requestNotifications: function() {
+                    window.webkit.messageHandlers.requestNotifications.postMessage({});
+                },
+                scheduleNotification: function(id, title, preview, schedule) {
+                    const message = {id, title, preview, schedule};
+                    window.webkit.messageHandlers.scheduleNotification.postMessage(message);
+                },
+                cancelNotification: function(id) {
+                    window.webkit.messageHandlers.cancelNotification.postMessage({id});
                 }
             };
         """
     }
 }
 
-class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
+class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, UNUserNotificationCenterDelegate {
     var webView: WKWebView
     
     init(webView: WKWebView) {
         self.webView = webView
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
+    func webView(_ webView: WKWebView,
+                 decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let url = navigationAction.request.url {
             if url.absoluteString.starts(with: "https://") {
@@ -91,6 +105,12 @@ class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         }
 
         decisionHandler(.allow)
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler(.banner)
     }
     
     func userContentController(_ userContentController: WKUserContentController,
@@ -104,6 +124,12 @@ class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
             loadPreferences(body)
         } else if message.name == "savePreferences" {
             savePreferences(body)
+        } else if message.name == "requestNotifications" {
+            requestNotifications()
+        } else if message.name == "scheduleNotification" {
+            scheduleNotification(body)
+        } else if message.name == "cancelNotification" {
+            cancelNotification(body)
         }
     }
 
@@ -117,8 +143,56 @@ class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     }
     
     func savePreferences(_ body: NSDictionary) {
-        let name: String = body["name"] as! String;
-        let value: String = body["value"] as! String;
+        let name: String = body["name"] as! String
+        let value: String = body["value"] as! String
         UserDefaults.standard.set(value, forKey: name)
+    }
+
+    func requestNotifications() {
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.delegate = self
+        notificationCenter.requestAuthorization(options: [.alert, .badge]) { (granted, error) in
+            if error != nil {
+                print("Failed to request notification permission: \(error)")
+            }
+        }
+    }
+
+    func scheduleNotification(_ body: NSDictionary) {
+        let id: String = body["id"] as! String
+        let title: String = body["title"] as! String
+        let preview: String = body["preview"] as! String
+        let date: String = body["schedule"] as! String
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = preview
+
+        let schedule = parseNotificationSchedule(date)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: schedule, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.add(request) { (error) in
+            if error != nil {
+                print("Failed to schedule notification: \(error)")
+            }
+       }
+    }
+
+    func parseNotificationSchedule(_ schedule: String) -> DateComponents {
+        let dateFormat = DateFormatter()
+        dateFormat.locale = Locale.current
+        dateFormat.timeZone = Calendar.current.timeZone
+        dateFormat.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        let date = dateFormat.date(from: schedule)!
+        return Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second],
+            from: date)
+    }
+
+    func cancelNotification(_ body: NSDictionary) {
+        let id: String = body["id"] as! String
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [id])
     }
 }

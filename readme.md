@@ -43,7 +43,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2024.6"
+        id "nl.colorize.gradle.application" version "2024.7"
     }
 
 Building native Mac application bundles
@@ -287,8 +287,13 @@ for common tasks, which can be called from JavaScript:
   [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). This can
   be used for persistent data, since iOS aggressively cleans up local storage for infrequently
   used apps.
-- `clrz.savePreferences(name, value)` can be used to save name/value pairs to the native app
-  storage.
+- `clrz.savePreferences(name, value)` saves a name/value pairs to the native app storage.
+- `clrz.requestNotifications()` requests permission to schedule notifications. If the user has
+  already previously approved or rejected permission, calling this function does nothing.
+- `clrz.scheduleNotification(id, title, preview, schedule)` schedules a native notification for
+  the specified date and time. The `schedule` argument should be a date/time in ISO 8601 format,
+  for example "2024-10-07 10:37:00". The date is interpreted against the user's current time zone.
+- `clrz.cancelNotification(id)` cancels a previously scheduled notification.
 
 Building PWAs
 -------------

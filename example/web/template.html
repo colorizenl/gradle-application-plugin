@@ -30,5 +30,10 @@
             <button onclick="window.loadStorageText()">Load app storage</button>
             <button onclick="window.saveStorageText()">Save app storage</button>
         </form>
+
+        <form onsubmit="event.preventDefault()">
+            <button onclick="window.scheduleNotification()">Schedule notification</button>
+            <button onclick="window.cancelNotification()">Cancel</button>
+        </form>
     </body>
 </html>

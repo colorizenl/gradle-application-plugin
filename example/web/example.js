@@ -51,6 +51,34 @@ window.saveStorageText = function() {
     }
 };
 
+window.scheduleNotification = function() {
+    if (window.clrz) {
+        window.clrz.requestNotifications();
+        const schedule = new Date(new Date().getTime() + 5000).toLocaleString("sv");
+        window.clrz.scheduleNotification("1234", "This is a notification",
+            "...with some body text.", schedule);
+    } else {
+        if (window.Notification.permission === "default") {
+            window.Notification.requestPermission();
+        }
+
+        const notification = new Notification("This is a notification", {
+            body: "...with some body text.",
+            tag: "1234"
+        });
+
+        notification.onclick = function() {
+            this.close();
+        }
+    }
+}
+
+cancelNotification = function() {
+    if (window.clrz) {
+        window.clrz.cancelNotification("1234");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", event => {
     loadImageFromScript();
     if (!navigator.share) {
