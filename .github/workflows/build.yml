@@ -17,7 +17,7 @@ jobs:
           LAUNCH4J_HOME: /launch4j/launch4j
       - name: Archive test report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-report
           path: build/reports
