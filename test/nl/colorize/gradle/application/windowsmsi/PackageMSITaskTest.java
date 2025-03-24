@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2024 Colorize
+// Copyright 2010-2025 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ class PackageMSITaskTest {
         macConfig.setIdentifier("com.example");
         macConfig.setBundleVersion("1.0");
         macConfig.setDescription("A simple example application");
-        macConfig.setCopyright("Copyright 2010-2024 Colorize");
+        macConfig.setCopyright("Copyright 2010-2025 Colorize");
         macConfig.setIcon("resources/icon.icns");
         macConfig.setMainJarName("example.jar");
         macConfig.setMainClassName("com.example.ExampleApp");
@@ -73,7 +73,7 @@ class PackageMSITaskTest {
             --description
             A simple example application
             --copyright
-            Copyright 2010-2024 Colorize
+            Copyright 2010-2025 Colorize
             --icon
             resources/icon.ico
             --win-upgrade-uuid

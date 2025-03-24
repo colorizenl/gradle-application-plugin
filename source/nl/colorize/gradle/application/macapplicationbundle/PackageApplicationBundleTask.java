@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2024 Colorize
+// Copyright 2010-2025 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -10,7 +10,9 @@ import nl.colorize.gradle.application.AppHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +26,14 @@ import java.util.List;
  */
 public class PackageApplicationBundleTask extends DefaultTask {
 
+    private ExecOperations execService;
+
     private static final String ENTITLEMENTS = "entitlements-app.plist";
+
+    @Inject
+    public PackageApplicationBundleTask(ExecOperations execService) {
+        this.execService = execService;
+    }
 
     @TaskAction
     public void run() {
@@ -38,8 +47,8 @@ public class PackageApplicationBundleTask extends DefaultTask {
         File outputDir = config.getOutputDir(getProject());
         AppHelper.cleanDirectory(outputDir);
 
-        getProject().exec(exec -> exec.commandLine(getCommand("dmg", config)));
-        getProject().exec(exec -> exec.commandLine(getCommand("pkg", config)));
+        execService.exec(exec -> exec.commandLine(getCommand("dmg", config)));
+        execService.exec(exec -> exec.commandLine(getCommand("pkg", config)));
     }
 
     protected List<String> getCommand(String packageType, MacApplicationBundleExt config) {

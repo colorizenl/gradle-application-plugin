@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2024 Colorize
+// Copyright 2010-2025 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -11,11 +11,20 @@ import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleE
 import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PackageMSITask extends DefaultTask {
+
+    private ExecOperations execService;
+
+    @Inject
+    public PackageMSITask(ExecOperations execService) {
+        this.execService = execService;
+    }
 
     @TaskAction
     public void run() {
@@ -32,7 +41,7 @@ public class PackageMSITask extends DefaultTask {
         config.validate();
 
         List<String> packageCommand = buildPackageCommand(config);
-        getProject().exec(exec -> exec.commandLine(packageCommand));
+        execService.exec(exec -> exec.commandLine(packageCommand));
     }
 
     protected List<String> buildPackageCommand(WindowsInstallerExt config) {

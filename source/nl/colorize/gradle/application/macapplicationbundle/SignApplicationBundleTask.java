@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2024 Colorize
+// Copyright 2010-2025 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -10,7 +10,9 @@ import nl.colorize.gradle.application.AppHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,8 +30,15 @@ import java.util.jar.JarFile;
  */
 public class SignApplicationBundleTask extends DefaultTask {
 
+    private ExecOperations execService;
+
     private static final String ENTITLEMENTS_APP = "entitlements-app.plist";
     private static final String ENTITLEMENTS_JRE = "entitlements-jre.plist";
+
+    @Inject
+    public SignApplicationBundleTask(ExecOperations execService) {
+        this.execService = execService;
+    }
 
     @TaskAction
     public void run() {
@@ -79,7 +88,7 @@ public class SignApplicationBundleTask extends DefaultTask {
             target.getAbsolutePath()
         );
 
-        getProject().exec(exec -> exec.commandLine(command));
+        execService.exec(exec -> exec.commandLine(command));
     }
 
     private void createInstallerPackage(MacApplicationBundleExt config, File appFile) {
@@ -93,7 +102,7 @@ public class SignApplicationBundleTask extends DefaultTask {
             pkgFile.getAbsolutePath()
         );
 
-        getProject().exec(exec -> exec.commandLine(command));
+        execService.exec(exec -> exec.commandLine(command));
     }
 
     private File generateEntitlements(String sourceFile) throws IOException {

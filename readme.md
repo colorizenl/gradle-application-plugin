@@ -43,7 +43,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2024.7"
+        id "nl.colorize.gradle.application" version "2025.1.1"
     }
 
 Building native Mac application bundles
@@ -58,7 +58,8 @@ The Java runtime will be packaged with the application. By default, this will us
 as indicated by the `JAVA_HOME` environment variable. This can be changed to a list of custom
 JDK paths by setting the `jdkPaths` configuration property. If an x86 JDK is used, generated
 application bundles will support both Intel and Apple Silicon Macs. If an ARM JDK is used, only
-Apple Silicon Macs will be supported.
+Apple Silicon Macs will be supported. The embedded JDK should not be in quarantine, i.e. the
+`com.apple.quarantine` attribute should not be present on any of the files within the JDK.
     
 The application bundle can be configured using the `macApplicationBundle` block. The configuration
 options correspong to the ones from the [Ant plugin](https://github.com/TheInfiniteKind/appbundler).
@@ -68,7 +69,7 @@ The following shows an example on how to define this configuration in Gradle:
         name = "Example"
         identifier = "com.example"
         description = "A description for your application"
-        copyright = "Copyright 2024"
+        copyright = "Copyright 2025"
         bundleVersion = "1.0"
         icon = "resources/icon.icns"
         applicationCategory = "public.app-category.developer-tools"
@@ -395,7 +396,7 @@ the plugin itself. Refer to the documentation for each application type for deta
 License
 -------
 
-Copyright 2010-2024 Colorize
+Copyright 2010-2025 Colorize
 
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

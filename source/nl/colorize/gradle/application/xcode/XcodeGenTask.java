@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2024 Colorize
+// Copyright 2010-2025 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -9,8 +9,10 @@ package nl.colorize.gradle.application.xcode;
 import nl.colorize.gradle.application.AppHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
 
 import javax.imageio.ImageIO;
+import javax.inject.Inject;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -30,6 +32,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class XcodeGenTask extends DefaultTask {
 
+    private ExecOperations execService;
+
     private static final List<IconVariant> ICON_VARIANTS = List.of(
         new IconVariant(120, "iphone", 2, "60x60"),
         new IconVariant(180, "iphone", 3, "60x60"),
@@ -37,6 +41,11 @@ public class XcodeGenTask extends DefaultTask {
         new IconVariant(167, "ipad", 2, "83.5x83.5"),
         new IconVariant(1024, "ios-marketing", 1, "1024x1024")
     );
+
+    @Inject
+    public XcodeGenTask(ExecOperations execService) {
+        this.execService = execService;
+    }
 
     @TaskAction
     public void run() {
@@ -53,7 +62,7 @@ public class XcodeGenTask extends DefaultTask {
             generateSpecFile(ext, specFile);
 
             List<String> xcodeGenCommand = buildCommand(ext, specFile, outputDir);
-            getProject().exec(exec -> exec.commandLine(xcodeGenCommand));
+            execService.exec(exec -> exec.commandLine(xcodeGenCommand));
         } catch (IOException e) {
             throw new RuntimeException("Unable to generate Xcode project", e);
         }
@@ -97,7 +106,7 @@ public class XcodeGenTask extends DefaultTask {
         );
 
         try {
-            String template = AppHelper.rewriteTemplate("xcodegen-template.yml", properties);
+            String template = AppHelper.rewriteTemplate("xcodegen-template-ios.yml", properties);
             Files.writeString(specFile.toPath(), template, UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Error while generating XcodeGen spec file", e);

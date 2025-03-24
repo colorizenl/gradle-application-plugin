@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2024 Colorize
+// Copyright 2010-2025 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ class CreateApplicationBundleTaskTest {
         config.setName("Example");
         config.setIdentifier("com.example");
         config.setDescription("A description for your application");
-        config.setCopyright("Copyright 2024");
+        config.setCopyright("Copyright 2025");
         config.setMainJarName("example.jar");
         config.setMainClassName("HelloWorld.Main");
         config.setContentDir("resources");

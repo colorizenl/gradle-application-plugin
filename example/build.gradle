@@ -5,10 +5,14 @@ buildscript {
 
     dependencies {
         classpath files("../build/libs/application-plugin.jar")
-        classpath "org.jsoup:jsoup:1.15.3"
-        classpath "org.commonmark:commonmark:0.21.0"
+        classpath "org.jsoup:jsoup:1.19.1"
+        classpath "org.commonmark:commonmark:0.24.0"
         classpath "org.nanohttpd:nanohttpd-webserver:2.3.1"
     }
+}
+
+plugins {
+    id "com.github.ben-manes.versions" version "0.52.0"
 }
 
 apply plugin: "java"
