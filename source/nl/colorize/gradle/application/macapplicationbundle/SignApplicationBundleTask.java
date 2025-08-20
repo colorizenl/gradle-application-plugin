@@ -13,6 +13,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Signs the Mac application bundle from {@link CreateApplicationBundleTask}.
@@ -60,6 +63,8 @@ public class SignApplicationBundleTask extends DefaultTask {
         File appEntitlements = generateEntitlements(ENTITLEMENTS_APP);
         File jreEntitlements = generateEntitlements(ENTITLEMENTS_JRE);
 
+        checkEmbeddedJDK(embeddedJDK);
+
         if (config.isSignNativeLibraries()) {
             extractNativeLibraries(config);
         }
@@ -71,6 +76,21 @@ public class SignApplicationBundleTask extends DefaultTask {
         sign(embeddedJDK, jreEntitlements);
         sign(appBundle, appEntitlements);
         createInstallerPackage(config, appBundle);
+    }
+
+    private void checkEmbeddedJDK(File embeddedJDK) {
+        File dylib = new File(embeddedJDK, "Contents/MacOS/libjli.dylib");
+        List<String> command = List.of("xattr", dylib.getAbsolutePath());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        execService.exec(exec -> {
+            exec.commandLine(command);
+            exec.setStandardOutput(output);
+        });
+
+        if (output.toString(UTF_8).contains("com.apple.quarantine")) {
+            throw new RuntimeException("Embedded JDK contains com.apple.quarantine flag");
+        }
     }
 
     private boolean isNativeBinary(File file) {

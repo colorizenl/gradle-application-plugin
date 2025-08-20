@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -43,8 +42,7 @@ public class AppHelper {
 
     public static File getLibsDir(Project project) {
         // Gradle 7 and higher no longer have the libsDir property.
-        String libsDirName = (String) project.getProperties().get("libsDirName");
-        return new File(project.getBuildDir(), libsDirName);
+        return new File(project.getBuildDir(), "libs");
     }
 
     public static void check(boolean condition, String message) {

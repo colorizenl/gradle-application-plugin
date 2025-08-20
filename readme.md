@@ -43,7 +43,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2025.1.1"
+        id "nl.colorize.gradle.application" version "2025.1.3"
     }
 
 Building native Mac application bundles
