@@ -19,13 +19,14 @@ import java.nio.file.Files;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GenerateStaticSiteTaskTest {
 
     @Test
     void renderTemplateHTML(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
-        createFile(inputDir, "template.html", "<html><clrz-content /></html>");
+        createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
 
         StaticSiteExt config = new StaticSiteExt();
@@ -38,9 +39,30 @@ class GenerateStaticSiteTaskTest {
             <html>
                 <head></head>
                 <body>
-                    <div>
-                        Hello world
-                    </div>
+                    <div>Hello world</div>
+                </body>
+            </html>""";
+
+        assertEquals(html, readFile(outputDir, "a.html"));
+        assertFalse(doesFileExist(outputDir, "template.html"));
+    }
+
+    @Test
+    void templateWithClosingTag(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+        createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
+        createFile(inputDir, "a.html", "<div>Hello world</div>");
+
+        StaticSiteExt config = new StaticSiteExt();
+        config.setContentDir(".");
+
+        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        task.run(config);
+
+        String html = """
+            <html>
+                <head></head>
+                <body>
+                    <div>Hello world</div>
                 </body>
             </html>""";
 
@@ -50,7 +72,8 @@ class GenerateStaticSiteTaskTest {
 
     @Test
     void renderTemplateInSameLocation(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
-        createFile(inputDir, "template.html", "<html><h1>1</h1><clrz-content /><h2>2</h2></html>");
+        createFile(inputDir, "template.html",
+            "<html><h1>1</h1><clrz-content></clrz-content><h2>2</h2></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
 
         StaticSiteExt config = new StaticSiteExt();
@@ -64,9 +87,7 @@ class GenerateStaticSiteTaskTest {
                 <head></head>
                 <body>
                     <h1>1</h1>
-                    <div>
-                        Hello world
-                    </div>
+                    <div>Hello world</div>
                     <h2>2</h2>
                 </body>
             </html>""";
@@ -77,7 +98,7 @@ class GenerateStaticSiteTaskTest {
 
     @Test
     void retainDirectoryStructure(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
-        createFile(inputDir, "template.html", "<html><clrz-content /></html>");
+        createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
         new File(inputDir, "b").mkdir();
         createFile(inputDir, "b/b.html", "<div>Hello world</div>");
@@ -96,7 +117,7 @@ class GenerateStaticSiteTaskTest {
 
     @Test
     void renderMarkdownInTemplate(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
-        createFile(inputDir, "template.html", "<html><clrz-content /></html>");
+        createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.md", "# Test\n\ntest");
 
         StaticSiteExt config = new StaticSiteExt();
@@ -119,7 +140,7 @@ class GenerateStaticSiteTaskTest {
 
     @Test
     void copyNonArticleFiles(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
-        createFile(inputDir, "template.html", "<html><clrz-content /></html>");
+        createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
         createFile(inputDir, "b.txt", "test");
 
@@ -134,10 +155,10 @@ class GenerateStaticSiteTaskTest {
 
     @Test
     void renderTemplateRecursively(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
-        createFile(inputDir, "template.html", "<html><clrz-content /></html>");
+        createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
         new File(inputDir, "b").mkdir();
-        createFile(inputDir, "b/template.html", "<h1>Test</h1><clrz-content />");
+        createFile(inputDir, "b/template.html", "<h1>Test</h1><clrz-content></clrz-content>");
         createFile(inputDir, "b/b.html", "<em>nested</em>");
 
         StaticSiteExt config = new StaticSiteExt();
@@ -149,12 +170,26 @@ class GenerateStaticSiteTaskTest {
         String html = """
             <html>
                 <head></head>
-                <body>
-                    <h1>Test</h1><em>nested</em>
+                <body>\s
+                    <h1>Test</h1>
+                    <em>nested</em>\s
                 </body>
             </html>""";
 
         assertEquals(html, readFile(outputDir, "b/b.html"));
+    }
+
+    @Test
+    void selfClosingTagIsNoLongerAllowed(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+        createFile(inputDir, "template.html", "<html><clrz-content /></html>");
+        createFile(inputDir, "a.html", "<div>Hello world</div>");
+
+        StaticSiteExt config = new StaticSiteExt();
+        config.setContentDir(".");
+
+        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+
+        assertThrows(IllegalStateException.class, () -> task.run(config));
     }
 
     private GenerateStaticSiteTask prepare(File inputDir, File outputDir) {

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,6 +37,7 @@ class CreateApplicationBundleTaskTest {
         config.setMainClassName("HelloWorld.Main");
         config.setContentDir("resources");
         config.setBundleVersion("1.0");
+        config.setAdditionalBinaries(List.of("resources/App.swift"));
 
         CreateApplicationBundleTask task = (CreateApplicationBundleTask) project.getTasks()
             .getByName("createApplicationBundle");
@@ -50,6 +52,7 @@ class CreateApplicationBundleTaskTest {
         assertTrue(new File(bundleDir, "Contents/Java/example.jar").exists());
         assertTrue(new File(bundleDir, "Contents/MacOS").exists());
         assertTrue(new File(bundleDir, "Contents/MacOS/JavaAppLauncher").exists());
+        assertTrue(new File(bundleDir, "Contents/MacOS/App.swift").exists());
         assertTrue(new File(bundleDir, "Contents/Plugins").exists());
         assertTrue(new File(bundleDir, "Contents/Resources").exists());
         assertTrue(new File(bundleDir, "Contents/Resources/icon.icns").exists());

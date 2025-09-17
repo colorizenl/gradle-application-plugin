@@ -41,6 +41,7 @@ public class MacApplicationBundleExt implements Validatable {
     private List<String> args;
     private String jdkPath;
     private boolean signNativeLibraries;
+    private List<String> additionalBinaries;
     private String outputDir;
 
     public static final String SIGN_APP_ENV = "MAC_SIGN_APP_IDENTITY";
@@ -71,6 +72,7 @@ public class MacApplicationBundleExt implements Validatable {
         jdkPath = Optional.ofNullable(System.getenv("EMBEDDED_JAVA_HOME"))
             .orElse(AppHelper.getEnvironmentVariable("JAVA_HOME"));
         signNativeLibraries = false;
+        additionalBinaries = Collections.emptyList();
         outputDir = "mac";
     }
 
@@ -105,11 +107,16 @@ public class MacApplicationBundleExt implements Validatable {
 
         for (File pluginDir : pluginsDir.listFiles(File::isDirectory)) {
             String plugin = pluginDir.getName();
-            if (plugin.startsWith("jdk-") || plugin.startsWith("temurin-")) {
+            if (plugin.startsWith("jdk-") || plugin.startsWith("temurin-") || plugin.endsWith(".jdk")) {
                 return pluginDir;
             }
         }
 
         throw new RuntimeException("Cannot locate embedded JDK: " + appBundleDir.getAbsolutePath());
+    }
+
+    protected File locateNativesDir(Project project) {
+        File appBundleDir = locateApplicationBundle(project);
+        return new File(appBundleDir, "Contents/MacOS");
     }
 }

@@ -33,6 +33,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class XcodeGenTask extends DefaultTask {
 
     private ExecOperations execService;
+    
+    private static final List<String> SWIFT_FILES = List.of(
+        "App.swift",
+        "ScriptBridge.swift"
+    );
 
     private static final List<IconVariant> ICON_VARIANTS = List.of(
         new IconVariant(120, "iphone", 2, "60x60"),
@@ -83,8 +88,10 @@ public class XcodeGenTask extends DefaultTask {
         AppHelper.cleanDirectory(resourcesDir);
         copyResources(ext, resourcesDir);
 
-        String swiftCode = AppHelper.loadResourceFile("App.swift");
-        Files.writeString(new File(appDir, "App.swift").toPath(), swiftCode, UTF_8);
+        for (String swiftFile : SWIFT_FILES) {
+            String swiftCode = AppHelper.loadResourceFile(swiftFile);
+            Files.writeString(new File(appDir, swiftFile).toPath(), swiftCode, UTF_8);
+        }
 
         File assetsDir = AppHelper.mkdir(new File(appDir, "Assets.xcassets"));
         Files.writeString(new File(assetsDir, "Contents.json").toPath(),

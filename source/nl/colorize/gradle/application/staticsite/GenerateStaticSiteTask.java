@@ -52,7 +52,9 @@ public class GenerateStaticSiteTask extends DefaultTask {
 
         try {
             for (File file : traverse(contentDir, file -> isTemplateFile(file, config))) {
-                Document template = Jsoup.parse(file);
+                String html = Files.readString(file.toPath(), UTF_8);
+                validateTemplate(file, html);
+                Document template = Jsoup.parse(html);
                 templateCache.put(file, template);
             }
 
@@ -61,6 +63,15 @@ public class GenerateStaticSiteTask extends DefaultTask {
             }
         } catch (IOException e) {
             throw new RuntimeException("Error while generating static site", e);
+        }
+    }
+
+    private void validateTemplate(File file, String html) {
+        for (String tag : TEMPLATE_TAGS) {
+            if (html.contains("<" + tag + "/>") || html.contains("<" + tag + " />")) {
+                throw new IllegalStateException("Template " + file.getAbsolutePath() +
+                    " contains self-closing tag '" + tag + "'");
+            }
         }
     }
 

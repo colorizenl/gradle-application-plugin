@@ -19,6 +19,8 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,10 @@ public class CreateApplicationBundleTask extends DefaultTask {
         File outputDir = config.getOutputDir(getProject());
         AppHelper.cleanDirectory(outputDir);
         bundle(config, jdk, outputDir);
+
+        for (String binary : config.getAdditionalBinaries()) {
+            copyBinaryFile(new File(binary), config);
+        }
     }
 
     private void bundle(MacApplicationBundleExt config, File jdk, File outputDir) {
@@ -136,5 +142,16 @@ public class CreateApplicationBundleTask extends DefaultTask {
             displayName = config.getName();
         }
         return displayName;
+    }
+
+    private void copyBinaryFile(File binaryFile, MacApplicationBundleExt config) {
+        try {
+            File appBundle = config.locateApplicationBundle(getProject());
+            File nativesDir = config.locateNativesDir(getProject());
+            File outputFile = new File(nativesDir, binaryFile.getName());
+            Files.copy(binaryFile.toPath(), outputFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to copy " + binaryFile, e);
+        }
     }
 }

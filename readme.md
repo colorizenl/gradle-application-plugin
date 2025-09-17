@@ -43,7 +43,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2025.1.3"
+        id "nl.colorize.gradle.application" version "2025.3"
     }
 
 Building native Mac application bundles
@@ -60,6 +60,12 @@ JDK paths by setting the `jdkPaths` configuration property. If an x86 JDK is use
 application bundles will support both Intel and Apple Silicon Macs. If an ARM JDK is used, only
 Apple Silicon Macs will be supported. The embedded JDK should not be in quarantine, i.e. the
 `com.apple.quarantine` attribute should not be present on any of the files within the JDK.
+
+The following OpenJDK distributions are supported as embedded JDK in the application bundle:
+
+- [Eclipse Temurin](https://adoptium.net/temurin/releases)
+- [Azul Zulu](https://www.azul.com/downloads/#zulu)
+- [Amazon Corretto](https://aws.amazon.com/corretto/)
     
 The application bundle can be configured using the `macApplicationBundle` block. The configuration
 options correspong to the ones from the [Ant plugin](https://github.com/TheInfiniteKind/appbundler).
@@ -80,27 +86,28 @@ The following shows an example on how to define this configuration in Gradle:
 
 The following configuration options are available:
 
-| Name                   | Required | Description                                                     |
-|------------------------|----------|-----------------------------------------------------------------|
-| `name`                 | yes      | Mac application name.                                           |
-| `displayName`          | no       | Optional display name, defaults to the value of `name`.         |
-| `identifier`           | yes      | Apple application identfiier, in the format "com.example.name". | 
-| `bundleVersion`        | yes      | Application bundle version number.                              |
-| `description`          | yes      | Short description text.                                         |
-| `copyright`            | yes      | Copyright statement text.                                       |
-| `applicationCategory`  | yes      | Apple application category ID.                                  |
-| `minimumSystemVersion` | no       | Minimum required Mac OS version number. Defaults to 10.13.      |
-| `architectures`        | no       | Supported CPU architectures. Default is [`arm64`, `x86_64`].    |
-| `mainJarName`          | yes      | File name for the JAR file containing the main class.           |
-| `mainClassName`        | yes      | Fully qualified main class name.                                |
-| `jdkPath`              | no       | Location of JDK. Defaults to `JAVA_HOME`.                       |
-| `modules`              | no       | Overrides list of embedded JDK modules.                         |
-| `additionalModules`    | no       | Extends default list of embedded JDK modules.                   | 
-| `options`              | no       | List of JVM command line options.                               |
-| `args`                 | no       | List of command line arguments provided to the main class.      |
-| `icon`                 | yes      | Location of the `.icns` file.                                   |
-| `signNativeLibraries`  | no       | Signs native libraries embedded in the application's JAR files. |
-| `outputDir`            | no       | Output directory path, defaults to `build/mac`.                 |
+| Name                   | Required | Description                                                      |
+|------------------------|----------|------------------------------------------------------------------|
+| `name`                 | yes      | Mac application name.                                            |
+| `displayName`          | no       | Optional display name, defaults to the value of `name`.          |
+| `identifier`           | yes      | Apple application identfiier, in the format "com.example.name".  | 
+| `bundleVersion`        | yes      | Application bundle version number.                               |
+| `description`          | yes      | Short description text.                                          |
+| `copyright`            | yes      | Copyright statement text.                                        |
+| `applicationCategory`  | yes      | Apple application category ID.                                   |
+| `minimumSystemVersion` | no       | Minimum required Mac OS version number. Defaults to 10.13.       |
+| `architectures`        | no       | Supported CPU architectures. Default is [`arm64`, `x86_64`].     |
+| `mainJarName`          | yes      | File name for the JAR file containing the main class.            |
+| `mainClassName`        | yes      | Fully qualified main class name.                                 |
+| `jdkPath`              | no       | Location of JDK. Defaults to `JAVA_HOME`.                        |
+| `modules`              | no       | Overrides list of embedded JDK modules.                          |
+| `additionalModules`    | no       | Extends default list of embedded JDK modules.                    | 
+| `options`              | no       | List of JVM command line options.                                |
+| `args`                 | no       | List of command line arguments provided to the main class.       |
+| `icon`                 | yes      | Location of the `.icns` file.                                    |
+| `signNativeLibraries`  | no       | Signs native libraries embedded in the application's JAR files.  |
+| `additionalBinaries`   | no       | List of files that should be embedded in the application bundle. | 
+| `outputDir`            | no       | Output directory path, defaults to `build/mac`.                  |
 
 The application bundle includes a Java runtime. This does not include the full JDK, to reduce
 the bundle size. The list of JDK modules can be extended using the `additionalModules` property,
@@ -129,24 +136,22 @@ You will need to provide a "fat JAR" that defines a main class, and contains bot
 and all of its dependencies. The following example shows how to turn your project's default JAR
 file into a fat JAR:
 
-```
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    exclude "**/module-info.class"
-    exclude "**/META-INF/INDEX.LIST"
-    exclude "**/META-INF/*.SF"
-    exclude "**/META-INF/*.DSA"
-    exclude "**/META-INF/*.RSA"
+    jar {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        exclude "**/module-info.class"
+        exclude "**/META-INF/INDEX.LIST"
+        exclude "**/META-INF/*.SF"
+        exclude "**/META-INF/*.DSA"
+        exclude "**/META-INF/*.RSA"
+        
+        manifest {
+            attributes "Main-Class": "com.example.ExampleApp"
+        }
     
-    manifest {
-        attributes "Main-Class": "com.example.ExampleApp"
+        from {
+            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        }
     }
-
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-```
 
 There are alternative ways to create a fat JAR, if you need to retain the project's "normal"
 JAR file: You can [create a Gradle task](https://stackoverflow.com/a/61198352/79505) that will
@@ -171,8 +176,8 @@ some workflows (i.e. continuous integration pipelines that tend to use Linux ser
 Signing the application bundle is mandatory for distributing the application. This in turn needs
 a valid Apple developer account, and corresponding certificates. You will need two certificates:
 one for the application, and one for the installer. Please do not hard-code the signing identity
-into the build file. It is better to define them in the Gradle properties file at
-`~/.gradle/gradle.properties` and then access them from there.
+into the build file. It is better to define them in `~/.gradle/gradle.properties` or via 
+environment variables.
 
 Building native Windows MSI installers
 --------------------------------------

@@ -69,7 +69,7 @@ public class SignApplicationBundleTask extends DefaultTask {
             extractNativeLibraries(config);
         }
 
-        for (File file : AppHelper.walk(appBundle, this::isNativeBinary)) {
+        for (File file : AppHelper.walk(appBundle, file -> isNativeBinary(file, config))) {
             sign(file, jreEntitlements);
         }
 
@@ -93,8 +93,16 @@ public class SignApplicationBundleTask extends DefaultTask {
         }
     }
 
-    private boolean isNativeBinary(File file) {
-        return file.getName().endsWith(".dylib") || file.getName().equals("jspawnhelper");
+    private boolean isNativeBinary(File file, MacApplicationBundleExt config) {
+        if (!config.getAdditionalBinaries().isEmpty()) {
+            File nativesDir = config.locateNativesDir(getProject());
+            if (file.getParentFile().equals(nativesDir)) {
+                return true;
+            }
+        }
+
+        return file.getName().endsWith(".dylib") ||
+            file.getName().equals("jspawnhelper");
     }
 
     private void sign(File target, File entitlements) {
@@ -140,7 +148,7 @@ public class SignApplicationBundleTask extends DefaultTask {
         File appBundle = config.locateApplicationBundle(getProject());
         File jarDir = new File(appBundle, "/Contents/Java");
         File jarFile = new File(jarDir, config.getMainJarName());
-        File nativesDir = new File(appBundle, "/Contents/MacOS");
+        File nativesDir = config.locateNativesDir(getProject());
 
         try (JarFile jar = new JarFile(jarFile)) {
             for (JarEntry entry : Collections.list(jar.entries())) {

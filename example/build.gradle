@@ -5,8 +5,8 @@ buildscript {
 
     dependencies {
         classpath files("../build/libs/application-plugin.jar")
-        classpath "org.jsoup:jsoup:1.21.1"
-        classpath "org.commonmark:commonmark:0.25.1"
+        classpath "org.jsoup:jsoup:1.21.2"
+        classpath "org.commonmark:commonmark:0.26.0"
         classpath "org.nanohttpd:nanohttpd-webserver:2.3.1"
     }
 }
