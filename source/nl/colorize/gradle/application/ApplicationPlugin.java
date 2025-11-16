@@ -6,6 +6,8 @@
 
 package nl.colorize.gradle.application;
 
+import nl.colorize.gradle.application.icon.AppIconExt;
+import nl.colorize.gradle.application.icon.GenerateAppIconsTask;
 import nl.colorize.gradle.application.macapplicationbundle.CreateApplicationBundleTask;
 import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleExt;
 import nl.colorize.gradle.application.macapplicationbundle.PackageApplicationBundleTask;
@@ -39,6 +41,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         configureXcodeGen(project);
         configurePWA(project);
         configureStaticSite(project);
+        configureAppIcon(project);
     }
 
     private void configureMacApplicationBundle(Project project) {
@@ -93,5 +96,13 @@ public class ApplicationPlugin implements Plugin<Project> {
         tasks.create("serveStaticSite", ServeStaticSiteTask.class);
 
         tasks.getByName("serveStaticSite").dependsOn(tasks.getByName("generateStaticSite"));
+    }
+
+    private void configureAppIcon(Project project) {
+        ExtensionContainer ext = project.getExtensions();
+        ext.create("appIcon", AppIconExt.class);
+
+        TaskContainer tasks = project.getTasks();
+        tasks.create("generateAppIcons", GenerateAppIconsTask.class);
     }
 }

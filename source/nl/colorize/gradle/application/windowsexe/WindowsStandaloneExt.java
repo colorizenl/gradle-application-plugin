@@ -6,7 +6,8 @@
 
 package nl.colorize.gradle.application.windowsexe;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.Validatable;
 import nl.colorize.gradle.application.macapplicationbundle.MacApplicationBundleExt;
@@ -16,7 +17,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 public class WindowsStandaloneExt implements Validatable {
 
     private boolean inherit;

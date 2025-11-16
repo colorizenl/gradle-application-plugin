@@ -6,7 +6,8 @@
 
 package nl.colorize.gradle.application.macapplicationbundle;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.Validatable;
 import org.gradle.api.Project;
@@ -18,7 +19,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-@Data
+@Getter
+@Setter
 public class MacApplicationBundleExt implements Validatable {
 
     private String name;

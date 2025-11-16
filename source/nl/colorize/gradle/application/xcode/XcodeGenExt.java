@@ -6,11 +6,13 @@
 
 package nl.colorize.gradle.application.xcode;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.Validatable;
 
-@Data
+@Getter
+@Setter
 public class XcodeGenExt implements Validatable {
 
     private String appId;

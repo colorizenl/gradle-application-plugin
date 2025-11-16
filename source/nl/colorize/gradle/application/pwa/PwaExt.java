@@ -6,14 +6,16 @@
 
 package nl.colorize.gradle.application.pwa;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.Validatable;
 import org.gradle.api.Project;
 
 import java.io.File;
 
-@Data
+@Getter
+@Setter
 public class PwaExt implements Validatable {
 
     private String webAppDir;

@@ -43,7 +43,7 @@ The plugin is available from the [Gradle plugin registry](https://plugins.gradle
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
     plugins {
-        id "nl.colorize.gradle.application" version "2025.3"
+        id "nl.colorize.gradle.application" version "2025.4"
     }
 
 Building native Mac application bundles
@@ -354,12 +354,36 @@ are available:
 The **serveStaticSite** task can be used to test the generated static site using a local HTTP server,
 at [http://localhost:7777](http://localhost:7777).
 
+Generating application icons
+----------------------------
+
+Different platforms tend to have specific requirements for application icons. The task
+`generateAppIcons` generates native application icons, using a single 512x512 PNG image
+as input. This task will generate icons for the following platforms:
+
+| Target platform  | File format | Icon size(s)                    |
+|------------------|-------------|---------------------------------|
+| Mac              | .icns       | 1024, 512, 256, 128, 64, 32, 16 |
+| Windows          | .png        | 48                              |
+| iOS              | .png        | 1024, 180, 167, 152, 120        |
+| Browser favicon  | .png        | 32                              |
+| Apple favicon    | .png        | 180                             |
+| PWA              | .png        | 512, 192                        |
+
+The task can be configured using the `appIcon` configuration section. The following options
+are available:
+
+| Name            | Required | Description                                                   |
+|-----------------|----------|---------------------------------------------------------------|
+| `original`      | yes      | PNG file that is used as the base image for generating icons. |
+| `outputDir`     | no       | Output directory, defaults to `build/icons`.                  |
+
 Instructions for building the plugin itself
 -------------------------------------------
 
 Building the plugin itself can only be done on Mac OS. It also requires the following:
 
-- [Java JDK](http://java.oracle.com) 21+
+- [Java JDK](http://java.oracle.com) 25+
 - [Gradle](http://gradle.org)
 - [Ant](https://ant.apache.org)
 
@@ -394,6 +418,7 @@ The plugin comes with an example application, that can be used to test the plugi
   - Run `gradle xcodeGen` to generate a Xcode project for a hybrid iOS app.
   - Run `gradle generateStaticSite` to generate a website from Markdown templates.
   - Run `gradle generatePWA` to create a PWA version of the aforementioned website.
+  - Run `gradle generateAppIcons` to generate the application icon for various platforms.
     
 Building the example application uses the same system requirements and environment variables as
 the plugin itself. Refer to the documentation for each application type for details.

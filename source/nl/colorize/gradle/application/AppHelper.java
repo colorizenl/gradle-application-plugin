@@ -34,8 +34,12 @@ public class AppHelper {
         }
     }
 
+    public static boolean isMac() {
+        return System.getProperty("os.name").toLowerCase().contains("mac");
+    }
+
     public static void requireMac() {
-        if (!System.getProperty("os.name").toLowerCase().contains("mac")) {
+        if (!isMac()) {
             throw new UnsupportedOperationException("This task can only be used on Mac");
         }
     }

@@ -6,7 +6,8 @@
 
 package nl.colorize.gradle.application.staticsite;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.Validatable;
 import org.gradle.api.Project;
@@ -14,7 +15,8 @@ import org.gradle.api.Project;
 import java.io.File;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 public class StaticSiteExt implements Validatable {
 
     private String contentDir;

@@ -6,13 +6,13 @@ buildscript {
     dependencies {
         classpath files("../build/libs/application-plugin.jar")
         classpath "org.jsoup:jsoup:1.21.2"
-        classpath "org.commonmark:commonmark:0.26.0"
+        classpath "org.commonmark:commonmark:0.27.0"
         classpath "org.nanohttpd:nanohttpd-webserver:2.3.1"
     }
 }
 
 plugins {
-    id "com.github.ben-manes.versions" version "0.52.0"
+    id "com.github.ben-manes.versions" version "0.53.0"
 }
 
 apply plugin: "java"
@@ -23,8 +23,8 @@ version = "0.1"
 compileJava.options.encoding = "UTF-8"
 
 java {
-    sourceCompatibility = "21"
-    targetCompatibility = "21"
+    sourceCompatibility = "25"
+    targetCompatibility = "25"
     sourceSets.main.java.srcDirs = ["source"]
     sourceSets.main.resources.srcDirs = ["../resources"]
     sourceSets.test.java.srcDirs = ["source"]
@@ -75,6 +75,10 @@ pwa {
 
 staticSite {
     contentDir = "web"
+}
+
+appIcon {
+    original = "../resources/icon.png"
 }
 
 generateStaticSite.doLast {

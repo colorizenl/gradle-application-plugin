@@ -48,7 +48,8 @@ public class GenerateStaticSiteTask extends DefaultTask {
         File contentDir = new File(getProject().getProjectDir(), config.getContentDir());
         File outputDir = config.getOutputDir(getProject());
 
-        reset(outputDir);
+        AppHelper.cleanDirectory(outputDir);
+        templateCache.clear();
 
         try {
             for (File file : traverse(contentDir, file -> isTemplateFile(file, config))) {
@@ -73,20 +74,6 @@ public class GenerateStaticSiteTask extends DefaultTask {
                     " contains self-closing tag '" + tag + "'");
             }
         }
-    }
-
-    private void reset(File outputDir) {
-        if (!getProject().getBuildDir().exists()) {
-            getProject().getBuildDir().mkdir();
-        }
-
-        if (!outputDir.exists()) {
-            outputDir.mkdir();
-        }
-
-        AppHelper.cleanDirectory(outputDir);
-
-        templateCache.clear();
     }
 
     private List<File> traverse(File contentDir, Predicate<File> filter) throws IOException {
