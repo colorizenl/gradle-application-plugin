@@ -42,9 +42,11 @@ Usage
 The plugin is available from the [Gradle plugin registry](https://plugins.gradle.org). You can
 use the plugin in your Gradle project by adding the following to `build.gradle`:
 
-    plugins {
-        id "nl.colorize.gradle.application" version "2025.4"
-    }
+```groovy
+plugins {
+    id "nl.colorize.gradle.application" version "2025.4"
+}
+```
 
 Building native Mac application bundles
 ---------------------------------------
@@ -71,18 +73,20 @@ The application bundle can be configured using the `macApplicationBundle` block.
 options correspong to the ones from the [Ant plugin](https://github.com/TheInfiniteKind/appbundler).
 The following shows an example on how to define this configuration in Gradle:
 
-    macApplicationBundle {
-        name = "Example"
-        identifier = "com.example"
-        description = "A description for your application"
-        copyright = "Copyright 2025"
-        bundleVersion = "1.0"
-        icon = "resources/icon.icns"
-        applicationCategory = "public.app-category.developer-tools"
-        mainClassName = "com.example.app.Main"
-        outputDir = "${buildDir}"
-        options = ["-Xmx2g"]
-    }
+```groovy
+macApplicationBundle {
+    name = "Example"
+    identifier = "com.example"
+    description = "A description for your application"
+    copyright = "Copyright 2025"
+    bundleVersion = "1.0"
+    icon = "resources/icon.icns"
+    applicationCategory = "public.app-category.developer-tools"
+    mainClassName = "com.example.app.Main"
+    outputDir = "${buildDir}"
+    options = ["-Xmx2g"]
+}
+```
 
 The following configuration options are available:
 
@@ -136,22 +140,24 @@ You will need to provide a "fat JAR" that defines a main class, and contains bot
 and all of its dependencies. The following example shows how to turn your project's default JAR
 file into a fat JAR:
 
-    jar {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        exclude "**/module-info.class"
-        exclude "**/META-INF/INDEX.LIST"
-        exclude "**/META-INF/*.SF"
-        exclude "**/META-INF/*.DSA"
-        exclude "**/META-INF/*.RSA"
-        
-        manifest {
-            attributes "Main-Class": "com.example.ExampleApp"
-        }
+```groovy
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude "**/module-info.class"
+    exclude "**/META-INF/INDEX.LIST"
+    exclude "**/META-INF/*.SF"
+    exclude "**/META-INF/*.DSA"
+    exclude "**/META-INF/*.RSA"
     
-        from {
-            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-        }
+    manifest {
+        attributes "Main-Class": "com.example.ExampleApp"
     }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+```
 
 There are alternative ways to create a fat JAR, if you need to retain the project's "normal"
 JAR file: You can [create a Gradle task](https://stackoverflow.com/a/61198352/79505) that will

@@ -1,0 +1,13 @@
+image: colorizenl/colorize-ci
+
+pipelines:
+  default:
+    - step:
+        name: Compile
+        script:
+          - gradle compileJava
+    - step:
+        name: Unit tests
+        script:
+          - gradle coverage -Pheadless=true
+  

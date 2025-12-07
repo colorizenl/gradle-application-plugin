@@ -240,7 +240,7 @@ public class GenerateAppIconsTask extends DefaultTask {
         for (int i = -amount; i <= amount; i++) {
             float distance = i * i;
             int index = i + amount;
-            data[index] = (float) Math.exp(-distance / (sigmaTwoSquared) / sigmaRoot);
+            data[index] = (float) Math.exp(-distance / sigmaTwoSquared / sigmaRoot);
             total += data[index];
         }
 

@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -77,13 +78,14 @@ public class GenerateStaticSiteTask extends DefaultTask {
     }
 
     private List<File> traverse(File contentDir, Predicate<File> filter) throws IOException {
-        return Files.walk(contentDir.toPath())
-            .map(Path::toFile)
-            .distinct()
-            .filter(file -> !isIgnored(file))
-            .filter(file -> !file.equals(contentDir))
-            .filter(filter)
-            .toList();
+        try (Stream<Path> stream = Files.walk(contentDir.toPath())) {
+            return stream.map(Path::toFile)
+                .distinct()
+                .filter(file -> !isIgnored(file))
+                .filter(file -> !file.equals(contentDir))
+                .filter(filter)
+                .toList();
+        }
     }
 
     private void processFile(File file, File contentDir, File outputDir, StaticSiteExt config)

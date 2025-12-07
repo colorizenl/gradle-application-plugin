@@ -14,8 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -77,19 +78,23 @@ public class GeneratePwaTask extends DefaultTask {
             return Files.readString(new File(config.getServiceWorker()).toPath(), UTF_8);
         }
 
-        Path base = config.getOutputDir(getProject()).toPath();
-
-        String resourceFileList = Files.walk(base)
-            .filter(file -> !Files.isDirectory(file))
-            .map(file -> base.relativize(file).toString())
-            .filter(file -> !file.startsWith("userHome"))
-            .sorted()
-            .map(file -> "\"/" + file + "\",\n")
-            .collect(Collectors.joining(""));
+        Path baseDir = config.getOutputDir(getProject()).toPath();
+        List<String> resourceFiles = getResourceFileList(baseDir);
 
         return AppHelper.rewriteTemplate("service-worker.js", Map.of(
             "{{cacheName}}", config.getCacheName(),
-            "{{resourceFiles}}", resourceFileList
+            "{{resourceFiles}}", String.join("", resourceFiles)
         ));
+    }
+
+    private List<String> getResourceFileList(Path baseDir) throws IOException {
+        try (Stream<Path> stream = Files.walk(baseDir)) {
+            return stream.filter(file -> !Files.isDirectory(file))
+                .map(file -> baseDir.relativize(file).toString())
+                .filter(file -> !file.startsWith("userHome"))
+                .sorted()
+                .map(file -> "\"/" + file + "\",\n")
+                .toList();
+        }
     }
 }

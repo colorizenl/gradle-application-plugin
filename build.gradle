@@ -13,6 +13,7 @@ buildscript {
 plugins {
     id "io.freefair.lombok" version "9.1.0"
     id "com.github.ben-manes.versions" version "0.53.0"
+    id "net.ltgt.errorprone" version "4.3.0"
 }
 
 apply plugin: "java-gradle-plugin"
@@ -44,6 +45,7 @@ dependencies {
     implementation "org.nanohttpd:nanohttpd-webserver:2.3.1"
     testImplementation "org.junit.jupiter:junit-jupiter:6.0.1"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    errorprone "com.google.errorprone:error_prone_core:2.45.0"
 }
 
 jar {
@@ -78,6 +80,14 @@ jacocoTestReport {
             fileTree(dir: it, exclude: ["**/**Ext**"])
         })
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone.allErrorsAsWarnings = true
+    options.errorprone.disable("FormatStringShouldUsePlaceholders")
+    options.errorprone.disable("InlineMeSuggester")
+    options.errorprone.disable("JavaUtilDate")
+    options.errorprone.disable("StringCaseLocaleUsage")
 }
 
 gradlePlugin {

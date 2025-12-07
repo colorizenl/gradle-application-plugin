@@ -146,7 +146,6 @@ public class CreateApplicationBundleTask extends DefaultTask {
 
     private void copyBinaryFile(File binaryFile, MacApplicationBundleExt config) {
         try {
-            File appBundle = config.locateApplicationBundle(getProject());
             File nativesDir = config.locateNativesDir(getProject());
             File outputFile = new File(nativesDir, binaryFile.getName());
             Files.copy(binaryFile.toPath(), outputFile.toPath());

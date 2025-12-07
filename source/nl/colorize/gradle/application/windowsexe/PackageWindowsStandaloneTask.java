@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -122,13 +123,19 @@ public class PackageWindowsStandaloneTask extends DefaultTask {
             addZipEntry(zip, jarFile.getName(), jarFile.toPath());
             addZipEntry(zip, exeFile.getName(), exeFile.toPath());
 
-            Files.walk(runtime.toPath())
-                .filter(path -> !Files.isDirectory(path))
-                .filter(path -> !path.getFileName().toString().equals(".DS_Store"))
-                .forEach(path -> addZipEntry(zip, runtime.toPath().relativize(path).toString(), path));
+            try (Stream<Path> stream = Files.walk(runtime.toPath())) {
+                stream.filter(path -> !Files.isDirectory(path))
+                    .filter(path -> !path.getFileName().toString().equals(".DS_Store"))
+                    .forEach(path -> addZipEntry(zip, runtime, path));
+            }
         } catch (IOException e) {
             throw new RuntimeException("Error creating ZIP file", e);
         }
+    }
+
+    private void addZipEntry(ZipOutputStream zip, File runtime, Path file) {
+        String zipPath = runtime.toPath().relativize(file).toString();
+        addZipEntry(zip, zipPath, file);
     }
 
     private void addZipEntry(ZipOutputStream zip, String zipPath, Path file) {

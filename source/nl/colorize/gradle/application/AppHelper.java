@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -91,9 +92,8 @@ public class AppHelper {
      */
     public static void cleanDirectory(File dir) {
         if (dir.exists()) {
-            try {
-                Files.walk(dir.toPath())
-                    .sorted(Comparator.reverseOrder())
+            try (Stream<Path> stream = Files.walk(dir.toPath())) {
+                stream.sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .filter(file -> !file.equals(dir))
                     .forEach(File::delete);
@@ -104,9 +104,8 @@ public class AppHelper {
     }
 
     public static List<File> walk(File start, Predicate<File> filter) {
-        try {
-            return Files.walk(start.toPath())
-                .map(Path::toFile)
+        try (Stream<Path> stream = Files.walk(start.toPath())) {
+            return stream.map(Path::toFile)
                 .filter(filter)
                 .toList();
         } catch (IOException e) {
