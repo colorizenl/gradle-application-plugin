@@ -5,14 +5,14 @@ buildscript {
 
     dependencies {
         classpath files("../build/libs/application-plugin.jar")
-        classpath "org.jsoup:jsoup:1.21.2"
+        classpath "org.jsoup:jsoup:1.22.1"
         classpath "org.commonmark:commonmark:0.27.0"
-        classpath "org.nanohttpd:nanohttpd-webserver:2.3.1"
     }
 }
 
 plugins {
     id "com.github.ben-manes.versions" version "0.53.0"
+    id "com.gradleup.shadow" version "9.3.1"
 }
 
 apply plugin: "java"
@@ -39,8 +39,7 @@ macApplicationBundle {
     icon = "../resources/icon.icns"
     applicationCategory = "public.app-category.developer-tools"
     mainClassName = "com.example.ExampleApp"
-    contentDir = "${buildDir}/fatJar"
-    mainJarName = "example-fat.jar"
+    mainJarName = "example-shadow.jar"
 }
 
 msi {
@@ -88,29 +87,13 @@ generateStaticSite.doLast {
     }
 }
 
-task fatJar(type: Jar) {
-    destinationDirectory = file("${buildDir}/fatJar")
-    archiveFileName = "example-fat.jar"
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    exclude "**/module-info.class"
-    exclude "**/META-INF/INDEX.LIST"
-    exclude "**/META-INF/*.SF"
-    exclude "**/META-INF/*.DSA"
-    exclude "**/META-INF/*.RSA"
-
+shadowJar {
+    archiveFileName = "example-shadow.jar"
     manifest {
         attributes "Application-Name": "Example"
         attributes "Main-Class": "com.example.ExampleApp"
     }
-
-    from {
-        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-    
-    with jar
 }
 
-createApplicationBundle.dependsOn fatJar
 generatePWA.dependsOn generateStaticSite
 xcodeGen.dependsOn generateStaticSite

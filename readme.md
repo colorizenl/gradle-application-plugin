@@ -78,7 +78,7 @@ macApplicationBundle {
     name = "Example"
     identifier = "com.example"
     description = "A description for your application"
-    copyright = "Copyright 2025"
+    copyright = "Copyright 2026"
     bundleVersion = "1.0"
     icon = "resources/icon.icns"
     applicationCategory = "public.app-category.developer-tools"
@@ -136,33 +136,10 @@ identity. The name of this identity can be set using the `MAC_SIGN_APP_IDENTITY`
 `MAC_SIGN_INSTALLER_IDENTITY` environment variables, for signing applications and installers
 respectively.
 
-You will need to provide a "fat JAR" that defines a main class, and contains both your application
-and all of its dependencies. The following example shows how to turn your project's default JAR
-file into a fat JAR:
-
-```groovy
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    exclude "**/module-info.class"
-    exclude "**/META-INF/INDEX.LIST"
-    exclude "**/META-INF/*.SF"
-    exclude "**/META-INF/*.DSA"
-    exclude "**/META-INF/*.RSA"
-    
-    manifest {
-        attributes "Main-Class": "com.example.ExampleApp"
-    }
-
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-```
-
-There are alternative ways to create a fat JAR, if you need to retain the project's "normal"
-JAR file: You can [create a Gradle task](https://stackoverflow.com/a/61198352/79505) that will
-create the fat JAR in in addition to the normal JAR. You can also use the
-[Gradle shadow JAR plugin](https://github.com/Goooler/shadow) to achieve the same effect.
+You will need to provide a "fat JAR" (sometimes called "shadow JAR") that defines a main class,
+and contains both your application and all of its dependencies. You can create such a JAR file
+using the [Gradle shadow JAR plugin](https://github.com/GradleUp/shadow). If the shadow JAR
+plugin is used, this plugin will automatically prefer the shadow JAR over the "normal" JAR file.
     
 The plugin adds a number of tasks to the project that use this configuration:
 
@@ -357,9 +334,6 @@ are available:
 | `outputDir`        | no       | staticsite    | Output directory, relative to build directory.    |
 | `templateFileName` | no       | template.html | File name used as template instead of content.    |
 
-The **serveStaticSite** task can be used to test the generated static site using a local HTTP server,
-at [http://localhost:7777](http://localhost:7777).
-
 Generating application icons
 ----------------------------
 
@@ -432,7 +406,7 @@ the plugin itself. Refer to the documentation for each application type for deta
 License
 -------
 
-Copyright 2010-2025 Colorize
+Copyright 2010-2026 Colorize
 
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

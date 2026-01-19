@@ -1,12 +1,14 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2025 Colorize
+// Copyright 2010-2026 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
 package nl.colorize.gradle.application;
 
 import org.gradle.api.Project;
+import org.gradle.api.UnknownTaskException;
+import org.gradle.api.tasks.TaskContainer;
 
 import java.io.File;
 import java.io.IOException;
@@ -143,5 +145,15 @@ public class AppHelper {
             template = template.replace(entry.getKey(), entry.getValue());
         }
         return template;
+    }
+
+    public static boolean hasShadowJarPlugin(Project project) {
+        TaskContainer tasks = project.getTasks();
+        try {
+            tasks.getByName("shadowJar");
+            return true;
+        } catch (UnknownTaskException e) {
+            return false;
+        }
     }
 }

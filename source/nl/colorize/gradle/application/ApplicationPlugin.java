@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2025 Colorize
+// Copyright 2010-2026 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -15,7 +15,6 @@ import nl.colorize.gradle.application.macapplicationbundle.SignApplicationBundle
 import nl.colorize.gradle.application.pwa.GeneratePwaTask;
 import nl.colorize.gradle.application.pwa.PwaExt;
 import nl.colorize.gradle.application.staticsite.GenerateStaticSiteTask;
-import nl.colorize.gradle.application.staticsite.ServeStaticSiteTask;
 import nl.colorize.gradle.application.staticsite.StaticSiteExt;
 import nl.colorize.gradle.application.windowsexe.PackageWindowsStandaloneTask;
 import nl.colorize.gradle.application.windowsexe.WindowsStandaloneExt;
@@ -56,6 +55,10 @@ public class ApplicationPlugin implements Plugin<Project> {
         tasks.getByName("signApplicationBundle").dependsOn(tasks.getByName("createApplicationBundle"));
         tasks.getByName("createApplicationBundle").dependsOn("jar");
         tasks.getByName("packageApplicationBundle").dependsOn("jar");
+        if (AppHelper.hasShadowJarPlugin(project)) {
+            tasks.getByName("createApplicationBundle").dependsOn("shadowJar");
+            tasks.getByName("packageApplicationBundle").dependsOn("shadowJar");
+        }
     }
 
     private void configureWindows(Project project) {
@@ -69,6 +72,10 @@ public class ApplicationPlugin implements Plugin<Project> {
 
         tasks.getByName("packageMSI").dependsOn("jar");
         tasks.getByName("packageEXE").dependsOn("jar");
+        if (AppHelper.hasShadowJarPlugin(project)) {
+            tasks.getByName("packageMSI").dependsOn("shadowJar");
+            tasks.getByName("packageEXE").dependsOn("shadowJar");
+        }
     }
 
     private void configureXcodeGen(Project project) {
@@ -93,9 +100,6 @@ public class ApplicationPlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
         tasks.create("generateStaticSite", GenerateStaticSiteTask.class);
-        tasks.create("serveStaticSite", ServeStaticSiteTask.class);
-
-        tasks.getByName("serveStaticSite").dependsOn(tasks.getByName("generateStaticSite"));
     }
 
     private void configureAppIcon(Project project) {

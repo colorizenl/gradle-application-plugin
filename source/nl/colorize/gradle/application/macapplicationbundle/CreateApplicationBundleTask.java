@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2025 Colorize
+// Copyright 2010-2026 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -34,6 +34,14 @@ public class CreateApplicationBundleTask extends DefaultTask {
     @TaskAction
     public void run() {
         AppHelper.requireMac();
+
+        // Overrides the XML system property to make sure the default
+        // implementation is used. This avoids dependency conflicts
+        // when *other* Gradle plugins try to change the XML
+        // configuration, which then breaks the AppBundler task.
+        System.setProperty("javax.xml.stream.XMLOutputFactory",
+            "com.sun.xml.internal.stream.XMLOutputFactoryImpl");
+
         ExtensionContainer ext = getProject().getExtensions();
         MacApplicationBundleExt config = ext.getByType(MacApplicationBundleExt.class);
         run(config);
@@ -86,6 +94,9 @@ public class CreateApplicationBundleTask extends DefaultTask {
     private FileSet createClassPath(MacApplicationBundleExt config) {
         FileSet classPath = new FileSet();
         classPath.setDir(getContentDir(config));
+        if (AppHelper.hasShadowJarPlugin(getProject())) {
+            classPath.setIncludes("*-all.jar,*-shadow.jar");
+        }
         classPath.setExcludes("*-sources.jar,*-javadoc.jar");
         return classPath;
     }

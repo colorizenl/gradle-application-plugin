@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2025 Colorize
+// Copyright 2010-2026 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class GenerateAppIconTaskTest {
+class GenerateAppIconsTaskTest {
 
     @Test
     void generateBrowserIcons(@TempDir File inputDir, @TempDir File outputDir) {

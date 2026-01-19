@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Gradle Application Plugin
-// Copyright 2010-2025 Colorize
+// Copyright 2010-2026 Colorize
 // Apache license (http://www.apache.org/licenses/LICENSE-2.0)
 //-----------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ class PackageApplicationBundleTaskTest {
             --app-version
             1.0
             --copyright
-            Copyright 2025
+            Copyright 2026
             --description
             ?
             --icon
