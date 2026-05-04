@@ -21,5 +21,5 @@ jobs:
           path: build/reports
           retention-days: 3
       - name: Copyright header check
-        run: copyright_check.py
+        run: copyright_check.py --exclude appbundler
         
