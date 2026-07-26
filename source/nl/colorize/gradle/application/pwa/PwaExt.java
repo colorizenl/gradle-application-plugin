@@ -6,39 +6,24 @@
 
 package nl.colorize.gradle.application.pwa;
 
-import lombok.Getter;
-import lombok.Setter;
-import nl.colorize.gradle.application.AppHelper;
-import nl.colorize.gradle.application.Validatable;
+import nl.colorize.gradle.application.ApplicationExt;
 import org.gradle.api.Project;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 
-import java.io.File;
+public interface PwaExt extends ApplicationExt {
 
-@Getter
-@Setter
-public class PwaExt implements Validatable {
-
-    private String webAppDir;
-    private String outputDir;
-    private String manifest;
-    private String serviceWorker;
-    private String cacheName;
-
-    public PwaExt() {
-        this.outputDir = "pwa";
-    }
-
-    public File getOutputDir(Project project) {
-        return AppHelper.getOutputDir(project, outputDir);
-    }
+    @Input Property<String> getWebAppDir();
+    @Input Property<String> getOutputDir();
+    @Input Property<String> getManifest();
+    @Input Property<String> getServiceWorker();
+    @Input Property<String> getCacheName();
 
     @Override
-    public void validate() {
-        AppHelper.check(webAppDir != null, "Missing pwa.webAppDir");
-        AppHelper.check(manifest != null, "Missing pwa.manifest");
-        AppHelper.check(cacheName != null, "Missing pwa.cacheName");
-
-        File indexFile = new File(webAppDir, "index.html");
-        AppHelper.check(indexFile.exists(), "pwa.webAppDir not contain index.html");
+    default void init(Project project) {
+        getProjectDirRef().set(project.getProjectDir());
+        getBuildDirRef().set(project.getLayout().getBuildDirectory().getAsFile().get());
+        getOutputDir().convention("pwa");
+        getServiceWorker().convention("");
     }
 }

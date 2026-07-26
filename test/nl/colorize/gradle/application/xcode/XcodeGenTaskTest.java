@@ -10,6 +10,7 @@ import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -23,17 +24,35 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class XcodeGenTaskTest {
 
-    @Test
-    void generateSpecFile(@TempDir File tempDir) throws IOException {
-        XcodeGenExt config = new XcodeGenExt();
-        config.setAppId("example");
-        config.setBundleId("com.example");
-        config.setAppName("Example App");
-        config.setBundleVersion("1.0");
-        config.setIcon("resources/icon.png");
+    private File inputDir;
+    private File outputDir;
+    private XcodeGenExt config;
+    private XcodeGenTask task;
 
-        XcodeGenTask task = prepareTask(tempDir);
-        File specFile = new File(tempDir, "spec.yml");
+    @BeforeEach
+    public void before(@TempDir File inputDir, @TempDir File outputDir) {
+        this.inputDir = inputDir;
+        this.outputDir = outputDir;
+
+        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
+        project.getLayout().getBuildDirectory().set(outputDir);
+
+        ApplicationPlugin plugin = new ApplicationPlugin();
+        plugin.apply(project);
+
+        config = project.getExtensions().getByType(XcodeGenExt.class);
+        task = (XcodeGenTask) project.getTasks().getByName("xcodeGen");
+    }
+
+    @Test
+    void generateSpecFile() throws IOException {
+        config.getAppId().set("example");
+        config.getBundleId().set("com.example");
+        config.getAppName().set("Example App");
+        config.getBundleVersion().set("1.0");
+        config.getIcon().set("resources/icon.png");
+
+        File specFile = new File(inputDir, "spec.yml");
         task.generateSpecFile(config, specFile);
 
         String expected = """
@@ -76,40 +95,34 @@ class XcodeGenTaskTest {
     }
 
     @Test
-    void generateProjectStructure(@TempDir File tempDir) throws IOException {
-        AppHelper.mkdir(new File(tempDir, "resources"));
+    void generateProjectStructure() throws IOException {
+        AppHelper.mkdir(new File(inputDir, "resources"));
 
-        XcodeGenExt config = new XcodeGenExt();
-        config.setAppId("example");
-        config.setBundleId("com.example");
-        config.setAppName("Example App");
-        config.setBundleVersion("1.0");
-        config.setIcon(new File("resources/icon.png").getAbsolutePath());
-        config.setResourcesDir("resources");
+        config.getAppId().set("example");
+        config.getBundleId().set("com.example");
+        config.getAppName().set("Example App");
+        config.getBundleVersion().set("1.0");
+        config.getIcon().set(new File("resources/icon.png").getAbsolutePath());
+        config.getResourcesDir().set("resources");
+        task.generateProjectStructure(config, outputDir);
 
-        XcodeGenTask task = prepareTask(tempDir);
-        task.generateProjectStructure(config, tempDir);
-
-        assertTrue(new File(tempDir, "example").exists());
-        assertTrue(new File(tempDir, "HybridResources").exists());
+        assertTrue(new File(outputDir, "example").exists());
+        assertTrue(new File(outputDir, "HybridResources").exists());
     }
 
     @Test
-    void generateAppIcons(@TempDir File tempDir) throws IOException {
-        AppHelper.mkdir(new File(tempDir, "resources"));
+    void generateAppIcons() throws IOException {
+        AppHelper.mkdir(new File(inputDir, "resources"));
 
-        XcodeGenExt config = new XcodeGenExt();
-        config.setAppId("example");
-        config.setBundleId("com.example");
-        config.setAppName("Example App");
-        config.setBundleVersion("1.0");
-        config.setIcon(new File("resources/icon.png").getAbsolutePath());
-        config.setResourcesDir("resources");
+        config.getAppId().set("example");
+        config.getBundleId().set("com.example");
+        config.getAppName().set("Example App");
+        config.getBundleVersion().set("1.0");
+        config.getIcon().set(new File("resources/icon.png").getAbsolutePath());
+        config.getResourcesDir().set("resources");
+        task.generateProjectStructure(config, outputDir);
 
-        XcodeGenTask task = prepareTask(tempDir);
-        task.generateProjectStructure(config, tempDir);
-
-        File iconDir = new File(tempDir, "example/Assets.xcassets/AppIcon.appiconset");
+        File iconDir = new File(outputDir, "example/Assets.xcassets/AppIcon.appiconset");
         File index = new File(iconDir, "Contents.json");
 
         String expected = """
@@ -161,16 +174,5 @@ class XcodeGenTaskTest {
         assertTrue(new File(iconDir, "icon-120.png").exists());
         assertTrue(index.exists());
         assertEquals(expected, Files.readString(index.toPath(), UTF_8));
-    }
-
-    private XcodeGenTask prepareTask(File tempDir) {
-        Project project = ProjectBuilder.builder()
-            .withProjectDir(tempDir)
-            .build();
-
-        ApplicationPlugin plugin = new ApplicationPlugin();
-        plugin.apply(project);
-
-        return (XcodeGenTask) project.getTasks().getByName("xcodeGen");
     }
 }

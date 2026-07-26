@@ -25,7 +25,7 @@ struct HybridWebView: UIViewRepresentable {
         
         let scriptController: WKUserContentController = WKUserContentController()
         scriptController.addUserScript(WKUserScript(
-            source: generateBridge(),
+            source: ScriptBridge.generateJavaScript(),
             injectionTime: .atDocumentEnd,
             forMainFrameOnly: false
         ))
@@ -48,6 +48,7 @@ struct HybridWebView: UIViewRepresentable {
         scriptController.add(scriptBridge, name: "requestNotifications")
         scriptController.add(scriptBridge, name: "scheduleNotification")
         scriptController.add(scriptBridge, name: "cancelNotification")
+        scriptController.add(scriptBridge, name: "fetchNotifications")
         webView.navigationDelegate = scriptBridge
         
         return webView
@@ -60,31 +61,5 @@ struct HybridWebView: UIViewRepresentable {
             let url = URL(fileURLWithPath: path)
             webView.loadFileURL(url, allowingReadAccessTo: url)
         }
-    }
-    
-    func generateBridge() -> String {
-        return """
-            window.clrz = {
-                openNativeBrowser: function(url) {
-                    window.webkit.messageHandlers.openNativeBrowser.postMessage({url});
-                },
-                loadPreferences: function() {
-                    window.webkit.messageHandlers.loadPreferences.postMessage({});
-                },
-                savePreferences: function(name, value) {
-                    window.webkit.messageHandlers.savePreferences.postMessage({name, value});
-                },
-                requestNotifications: function() {
-                    window.webkit.messageHandlers.requestNotifications.postMessage({});
-                },
-                scheduleNotification: function(id, title, preview, schedule) {
-                    const message = {id, title, preview, schedule};
-                    window.webkit.messageHandlers.scheduleNotification.postMessage(message);
-                },
-                cancelNotification: function(id) {
-                    window.webkit.messageHandlers.cancelNotification.postMessage({id});
-                }
-            };
-        """
     }
 }

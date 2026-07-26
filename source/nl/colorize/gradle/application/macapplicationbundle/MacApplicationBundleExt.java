@@ -6,11 +6,12 @@
 
 package nl.colorize.gradle.application.macapplicationbundle;
 
-import lombok.Getter;
-import lombok.Setter;
 import nl.colorize.gradle.application.AppHelper;
-import nl.colorize.gradle.application.Validatable;
+import nl.colorize.gradle.application.ApplicationExt;
 import org.gradle.api.Project;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -19,93 +20,66 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-@Getter
-@Setter
-public class MacApplicationBundleExt implements Validatable {
+public interface MacApplicationBundleExt extends ApplicationExt {
 
-    private String name;
-    private String displayName;
-    private String identifier;
-    private String description;
-    private String bundleVersion;
-    private String copyright;
-
-    private String icon;
-    private String applicationCategory;
-    private String minimumSystemVersion;
-    private List<String> architectures;
-    private String contentDir;
-    private String mainJarName;
-    private String mainClassName;
-    private List<String> modules;
-    private List<String> additionalModules;
-    private List<String> options;
-    private List<String> args;
-    private String jdkPath;
-    private boolean signNativeLibraries;
-    private List<String> additionalBinaries;
-    private String outputDir;
-
-    public static final String SIGN_APP_ENV = "MAC_SIGN_APP_IDENTITY";
-    public static final String SIGN_INSTALLER_ENV = "MAC_SIGN_INSTALLER_IDENTITY";
-
-    private static final List<String> DEFAULT_MODULES = List.of(
-        "java.base",
-        "java.desktop",
-        "java.logging",
-        "java.net.http",
-        "java.sql",
-        "jdk.crypto.ec"
-    );
-
-    public MacApplicationBundleExt() {
-        icon = "resources/icon.icns";
-        description = "";
-        copyright = "Copyright " + new SimpleDateFormat("yyyy").format(new Date());
-        bundleVersion = "1.0";
-        applicationCategory = "public.app-category.utilities";
-        
-        minimumSystemVersion = "10.13";
-        architectures = List.of("arm64", "x86_64");
-        modules = DEFAULT_MODULES;
-        additionalModules = Collections.emptyList();
-        options = List.of("-Xmx2g");
-        args = Collections.emptyList();
-        jdkPath = Optional.ofNullable(System.getenv("EMBEDDED_JAVA_HOME"))
-            .orElse(AppHelper.getEnvironmentVariable("JAVA_HOME"));
-        signNativeLibraries = false;
-        additionalBinaries = Collections.emptyList();
-        outputDir = "mac";
-    }
-
-    public File getOutputDir(Project project) {
-        return AppHelper.getOutputDir(project, outputDir);
-    }
+    @Input Property<String> getName();
+    @Input Property<String> getDisplayName();
+    @Input Property<String> getIdentifier();
+    @Input Property<String> getDescription();
+    @Input Property<String> getBundleVersion();
+    @Input Property<String> getCopyright();
+    @Input Property<String> getIcon();
+    @Input Property<String> getApplicationCategory();
+    @Input Property<String> getMinimumSystemVersion();
+    @Input ListProperty<String> getArchitectures();
+    @Input Property<String> getContentDir();
+    @Input Property<String> getMainJarName();
+    @Input Property<String> getMainClassName();
+    @Input ListProperty<String> getModules();
+    @Input ListProperty<String> getAdditionalModules();
+    @Input ListProperty<String> getOptions();
+    @Input ListProperty<String> getArgs();
+    @Input Property<String> getJdkPath();
+    @Input Property<Boolean> getSignNativeLibraries();
+    @Input ListProperty<String> getAdditionalBinaries();
+    @Input Property<String> getOutputDir();
 
     @Override
-    public void validate() {
-        AppHelper.check(name != null, "Missing macApplicationBundle.name");
-        AppHelper.check(identifier != null, "Missing macApplicationBundle.identifier");
-        AppHelper.check(bundleVersion != null, "Missing macApplicationBundle.bundleVersion");
-        AppHelper.check(mainJarName != null, "Missing macApplicationBundle.mainJarName");
-        AppHelper.check(mainClassName != null, "Missing macApplicationBundle.mainClassName");
-
-        File jdk = new File(jdkPath);
-        AppHelper.check(jdk.exists(), "JDK not found: " + jdk.getAbsolutePath());
-        AppHelper.check(jdk.getName().equals("Home"), "JDK should point to /Contents/Home");
+    default void init(Project project) {
+        getProjectDirRef().set(project.getProjectDir());
+        getBuildDirRef().set(project.getLayout().getBuildDirectory().getAsFile().get());
+        getDisplayName().convention("");
+        getIcon().convention("resources/icon.icns");
+        getDescription().convention("");
+        getCopyright().convention("Copyright " + new SimpleDateFormat("yyyy").format(new Date()));
+        getBundleVersion().convention("1.0");
+        getApplicationCategory().convention("public.app-category.utilities");
+        getMinimumSystemVersion().convention("10.13");
+        getArchitectures().convention(List.of("arm64", "x86_64"));
+        getContentDir().convention("");
+        getModules().convention(DEFAULT_MODULES);
+        getAdditionalModules().convention(Collections.emptyList());
+        getOptions().convention(List.of("-Xmx2g"));
+        getArgs().convention(Collections.emptyList());
+        getJdkPath().convention(Optional.ofNullable(System.getenv("EMBEDDED_JAVA_HOME"))
+            .orElse(AppHelper.getEnvironmentVariable("JAVA_HOME")));
+        getSignNativeLibraries().convention(false);
+        getAdditionalBinaries().convention(Collections.emptyList());
+        getOutputDir().convention("mac");
     }
 
-    protected File locateApplicationBundle(Project project) {
-        return new File(getOutputDir(project), getName() + ".app");
+    default File locateApplicationBundle() {
+        File outputDir = toOutputDir(getOutputDir().get());
+        return new File(outputDir, getName().get() + ".app");
     }
 
-    protected File locateEmbeddedJDK(Project project) {
-        File appBundleDir = locateApplicationBundle(project);
+    default File locateEmbeddedJDK() {
+        File appBundleDir = locateApplicationBundle();
         return locateEmbeddedJDK(appBundleDir);
     }
 
-    protected File locateEmbeddedJDK(File appBundleDir) {
-        File pluginsDir = new File(appBundleDir.getAbsolutePath() + "/Contents/PlugIns");
+    default File locateEmbeddedJDK(File appBundleDir) {
+        File pluginsDir = new File(appBundleDir, "Contents/PlugIns");
 
         for (File pluginDir : pluginsDir.listFiles(File::isDirectory)) {
             String plugin = pluginDir.getName();
@@ -117,8 +91,19 @@ public class MacApplicationBundleExt implements Validatable {
         throw new RuntimeException("Cannot locate embedded JDK: " + appBundleDir.getAbsolutePath());
     }
 
-    protected File locateNativesDir(Project project) {
-        File appBundleDir = locateApplicationBundle(project);
+    default File locateNativesDir() {
+        File appBundleDir = locateApplicationBundle();
         return new File(appBundleDir, "Contents/MacOS");
     }
+
+    public static final String SIGN_APP_ENV = "MAC_SIGN_APP_IDENTITY";
+    public static final String SIGN_INSTALLER_ENV = "MAC_SIGN_INSTALLER_IDENTITY";
+    public static final List<String> DEFAULT_MODULES = List.of(
+        "java.base",
+        "java.desktop",
+        "java.logging",
+        "java.net.http",
+        "java.sql",
+        "jdk.crypto.ec"
+    );
 }

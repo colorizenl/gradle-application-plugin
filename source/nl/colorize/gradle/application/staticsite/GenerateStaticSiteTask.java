@@ -11,6 +11,8 @@ import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,33 +23,39 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static nl.colorize.gradle.application.staticsite.StaticSiteExt.TEMPLATE_TAGS;
 
-public class GenerateStaticSiteTask extends DefaultTask {
+public abstract class GenerateStaticSiteTask extends DefaultTask {
+
+    private static final List<String> TEMPLATE_TAGS = List.of(
+        "clrz-content",
+        "colorize-content"
+    );
+
+    @Nested
+    public abstract Property<StaticSiteExt> getExt();
 
     private Map<File, Document> templateCache;
 
     public GenerateStaticSiteTask() {
-        this.templateCache = new HashMap<>();
+        this.templateCache = new ConcurrentHashMap<>();
     }
 
     @TaskAction
     public void run() {
-        StaticSiteExt config = getProject().getExtensions().getByType(StaticSiteExt.class);
-        run(config);
+        run(getExt().get());
     }
 
     protected void run(StaticSiteExt config) {
-        File contentDir = new File(getProject().getProjectDir(), config.getContentDir());
-        File outputDir = config.getOutputDir(getProject());
+        File contentDir = config.toProjectFile(config.getContentDir().get());
+        File outputDir = config.toOutputDir(config.getOutputDir().get());
 
         AppHelper.cleanDirectory(outputDir);
         templateCache.clear();
@@ -143,7 +151,7 @@ public class GenerateStaticSiteTask extends DefaultTask {
         }
 
         return parentChain.stream()
-            .map(dir -> new File(dir, config.getTemplateFileName()))
+            .map(dir -> new File(dir, config.getTemplateFileName().get()))
             .filter(templateCache::containsKey)
             .distinct()
             .map(templateFile -> templateCache.get(templateFile).clone())
@@ -171,6 +179,6 @@ public class GenerateStaticSiteTask extends DefaultTask {
     }
 
     private boolean isTemplateFile(File file, StaticSiteExt config) {
-        return file.getName().equals(config.getTemplateFileName());
+        return file.getName().equals(config.getTemplateFileName().get());
     }
 }

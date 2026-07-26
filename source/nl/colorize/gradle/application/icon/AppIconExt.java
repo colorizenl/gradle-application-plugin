@@ -6,24 +6,22 @@
 
 package nl.colorize.gradle.application.icon;
 
-import lombok.Getter;
-import lombok.Setter;
-import nl.colorize.gradle.application.AppHelper;
-import nl.colorize.gradle.application.Validatable;
+import nl.colorize.gradle.application.ApplicationExt;
+import org.gradle.api.Project;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 
-@Getter
-@Setter
-public class AppIconExt implements Validatable {
+public interface AppIconExt extends ApplicationExt {
 
-    private String original;
-    private String outputDir;
-
-    public AppIconExt() {
-        this.outputDir = "icons";
-    }
+    @Input Property<String> getOriginal();
+    @Input Property<String> getBackgroundColor();
+    @Input Property<String> getOutputDir();
 
     @Override
-    public void validate() {
-        AppHelper.check(original != null, "Missing appIcon.original");
+    default void init(Project project) {
+        getProjectDirRef().set(project.getProjectDir());
+        getBuildDirRef().set(project.getLayout().getBuildDirectory().getAsFile().get());
+        getBackgroundColor().convention("#000000");
+        getOutputDir().convention("icons");
     }
 }

@@ -6,9 +6,11 @@
 
 package nl.colorize.gradle.application.macapplicationbundle;
 
+import nl.colorize.gradle.application.AppHelper;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,30 +21,35 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PackageApplicationBundleTaskTest {
 
-    @Test
-    void runJPackage(@TempDir File tempDir) {
-        Project project = ProjectBuilder.builder()
-            .withProjectDir(tempDir)
-            .build();
+    private File inputDir;
+    private MacApplicationBundleExt config;
+    private PackageApplicationBundleTask task;
+
+    @BeforeEach
+    public void before(@TempDir File inputDir, @TempDir File outputDir) {
+        this.inputDir = inputDir;
+
+        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
+        project.getLayout().getBuildDirectory().set(outputDir);
 
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
 
-        project.copy(copy -> {
-            copy.from(new File("resources").getAbsolutePath());
-            copy.into(new File(tempDir, "resources").getAbsolutePath());
-        });
+        config = project.getExtensions().getByType(MacApplicationBundleExt.class);
+        task = (PackageApplicationBundleTask) project.getTasks().getByName("packageApplicationBundle");
+    }
 
-        MacApplicationBundleExt config = new MacApplicationBundleExt();
-        config.setName("Example");
-        config.setIdentifier("com.example");
-        config.setMainJarName("example.jar");
-        config.setMainClassName("HelloWorld.Main");
-        config.setContentDir("resources");
-        config.setDescription("?");
+    @Test
+    void runJPackage() {
+        AppHelper.copyDirectory(new File("resources"), new File(inputDir, "resources"));
 
-        PackageApplicationBundleTask task = (PackageApplicationBundleTask) project.getTasks()
-            .getByName("packageApplicationBundle");
+        config.getName().set("Example");
+        config.getIdentifier().set("com.example");
+        config.getMainJarName().set("example.jar");
+        config.getMainClassName().set("HelloWorld.Main");
+        config.getContentDir().set("resources");
+        config.getDescription().set("?");
+
         List<String> command = task.getCommand("dmg", config);
 
         String expected = """

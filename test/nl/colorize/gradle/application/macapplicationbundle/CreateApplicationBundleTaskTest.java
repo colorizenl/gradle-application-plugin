@@ -9,6 +9,7 @@ package nl.colorize.gradle.application.macapplicationbundle;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,31 +20,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CreateApplicationBundleTaskTest {
 
-    @Test
-    void createApplicationBundle(@TempDir File tempDir) {
-        Project project = ProjectBuilder.builder()
-            .withProjectDir(tempDir)
-            .build();
+    private File outputDir;
+    private MacApplicationBundleExt config;
+    private CreateApplicationBundleTask task;
+
+    @BeforeEach
+    public void before(@TempDir File inputDir, @TempDir File outputDir) {
+        this.outputDir = outputDir;
+
+        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
+        project.getLayout().getBuildDirectory().set(outputDir);
 
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
 
-        MacApplicationBundleExt config = new MacApplicationBundleExt();
-        config.setName("Example");
-        config.setIdentifier("com.example");
-        config.setDescription("A description for your application");
-        config.setCopyright("Copyright 2026");
-        config.setMainJarName("example.jar");
-        config.setMainClassName("HelloWorld.Main");
-        config.setContentDir("resources");
-        config.setBundleVersion("1.0");
-        config.setAdditionalBinaries(List.of("resources/App.swift"));
+        config = project.getExtensions().getByType(MacApplicationBundleExt.class);
+        task = (CreateApplicationBundleTask) project.getTasks().getByName("createApplicationBundle");
+    }
 
-        CreateApplicationBundleTask task = (CreateApplicationBundleTask) project.getTasks()
-            .getByName("createApplicationBundle");
+    @Test
+    void createApplicationBundle() {
+        config.getName().set("Example");
+        config.getIdentifier().set("com.example");
+        config.getDescription().set("A description for your application");
+        config.getCopyright().set("Copyright 2026");
+        config.getMainJarName().set("example.jar");
+        config.getMainClassName().set("HelloWorld.Main");
+        config.getContentDir().set(new File("resources").getAbsolutePath());
+        config.getBundleVersion().set("1.0");
+        config.getAdditionalBinaries().set(List.of("resources/App.swift"));
+        config.getIcon().set(new File("resources/icon.icns").getAbsolutePath());
         task.run(config);
 
-        File bundleDir = new File(tempDir + "/build/mac/Example.app");
+        File bundleDir = new File(outputDir, "mac/Example.app");
         File jdkDir = config.locateEmbeddedJDK(bundleDir);
 
         assertTrue(bundleDir.exists());

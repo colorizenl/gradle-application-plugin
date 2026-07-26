@@ -6,15 +6,12 @@
 
 package nl.colorize.gradle.application;
 
-import org.gradle.api.Project;
-import org.gradle.api.UnknownTaskException;
-import org.gradle.api.tasks.TaskContainer;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -47,44 +44,12 @@ public class AppHelper {
         }
     }
 
-    public static File getLibsDir(Project project) {
-        // Gradle 7 and higher no longer have the libsDir property.
-        return new File(project.getBuildDir(), "libs");
-    }
-
-    public static void check(boolean condition, String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
     public static String getEnvironmentVariable(String name) {
         String value = System.getenv(name);
-        check(value != null && !value.isEmpty(), "Missing environment variable: " + name);
+        if (value == null || value.isEmpty()) {
+            throw new IllegalStateException("Missing environment variable: " + name);
+        }
         return value;
-    }
-
-    public static File getProjectDir(Project project, String name) {
-        if (name.startsWith("/")) {
-            return new File(name);
-        } else {
-            return new File(project.getProjectDir().getAbsolutePath() + "/" + name);
-        }
-    }
-
-    public static File getProjectFile(Project project, String name) {
-        return getProjectDir(project, name);
-    }
-
-    public static File getOutputDir(Project project, String name) {
-        File outputDir = new File(project.getBuildDir().getAbsolutePath() + "/" + name);
-        if (!project.getBuildDir().exists()) {
-            project.getBuildDir().mkdir();
-        }
-        if (!outputDir.exists()) {
-            outputDir.mkdir();
-        }
-        return outputDir;
     }
 
     /**
@@ -126,7 +91,9 @@ public class AppHelper {
 
     public static String loadResourceFile(String path) {
         try (InputStream stream = AppHelper.class.getClassLoader().getResourceAsStream(path)) {
-            check(stream != null, "Unable to locate resource file: " + path);
+            if (stream == null) {
+                throw new IllegalStateException("Resource not found: " + path);
+            }
             byte[] contents = stream.readAllBytes();
             return new String(contents, UTF_8);
         } catch (IOException e) {
@@ -147,13 +114,15 @@ public class AppHelper {
         return template;
     }
 
-    public static boolean hasShadowJarPlugin(Project project) {
-        TaskContainer tasks = project.getTasks();
-        try {
-            tasks.getByName("shadowJar");
-            return true;
-        } catch (UnknownTaskException e) {
-            return false;
+    public static void copyDirectory(File source, File target) {
+        try (Stream<Path> stream = Files.walk(source.toPath())) {
+            for (Path childPath : stream.toList()) {
+                Path relativePath = source.toPath().relativize(childPath);
+                Path targetPath = target.toPath().resolve(relativePath);
+                Files.copy(childPath, targetPath, StandardCopyOption.COPY_ATTRIBUTES);
+            }
+        } catch(IOException e) {
+            throw new RuntimeException("Failed to copy directory", e);
         }
     }
 }

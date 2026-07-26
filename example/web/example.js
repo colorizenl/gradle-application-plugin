@@ -79,6 +79,16 @@ cancelNotification = function() {
     }
 }
 
+checkNotifications = function() {
+    if (window.clrz) {
+        const selector = document.querySelector("#scheduledNotifications ul");
+        selector.innerHTML = "(loading...)";
+        window.clrz.fetchNotifications(ids => {
+            selector.innerHTML = ids.map(id => `<li>${id}</li>`).join("\n");
+        });
+    }
+}
+
 document.addEventListener("DOMContentLoaded", event => {
     loadImageFromScript();
     if (!navigator.share) {

@@ -6,48 +6,33 @@
 
 package nl.colorize.gradle.application.xcode;
 
-import lombok.Getter;
-import lombok.Setter;
-import nl.colorize.gradle.application.AppHelper;
-import nl.colorize.gradle.application.Validatable;
+import nl.colorize.gradle.application.ApplicationExt;
+import org.gradle.api.Project;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 
-@Getter
-@Setter
-public class XcodeGenExt implements Validatable {
+public interface XcodeGenExt extends ApplicationExt {
 
-    private String appId;
-    private String bundleId;
-    private String appName;
-    private String bundleVersion;
-    private String icon;
-    private String iconBackgroundColor;
-    private String deploymentTarget;
-    private String resourcesDir;
-    private String launchScreenColor;
-    private String outputDir;
-    private String xcodeGenPath;
-
-    public XcodeGenExt() {
-        this.iconBackgroundColor = "#000000";
-        this.outputDir = "xcode";
-        this.deploymentTarget = "14.0";
-        this.launchScreenColor = "#000000";
-        this.xcodeGenPath = "/usr/local/bin/xcodegen";
-    }
+    @Input Property<String> getAppId();
+    @Input Property<String> getBundleId();
+    @Input Property<String> getAppName();
+    @Input Property<String> getBundleVersion();
+    @Input Property<String> getIcon();
+    @Input Property<String> getIconBackgroundColor();
+    @Input Property<String> getDeploymentTarget();
+    @Input Property<String> getResourcesDir();
+    @Input Property<String> getLaunchScreenColor();
+    @Input Property<String> getOutputDir();
+    @Input Property<String> getXcodeGenPath();
 
     @Override
-    public void validate() {
-        AppHelper.check(appId != null, "Missing xcodeGen.appId");
-        AppHelper.check(bundleId != null, "Missing xcodeGen.bundleId");
-        AppHelper.check(appName != null, "Missing xcodeGen.appName");
-        AppHelper.check(bundleVersion != null, "Missing xcodeGen.bundleVersion");
-        AppHelper.check(icon != null, "Missing xcodeGen.icon");
-        AppHelper.check(resourcesDir != null, "Missing xcodeGen.resourcesDir");
-
-        AppHelper.check(!appId.contains(" "), "App ID cannot contain spaces");
-    }
-
-    public String getBuildVersion() {
-        return System.getProperty("buildversion", bundleVersion);
+    default void init(Project project) {
+        getProjectDirRef().set(project.getProjectDir());
+        getBuildDirRef().set(project.getLayout().getBuildDirectory().getAsFile().get());
+        getIconBackgroundColor().convention("#000000");
+        getOutputDir().convention("xcode");
+        getDeploymentTarget().convention("14.0");
+        getLaunchScreenColor().convention("#000000");
+        getXcodeGenPath().convention("/usr/local/bin/xcodegen");
     }
 }

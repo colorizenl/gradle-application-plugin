@@ -8,8 +8,12 @@ package nl.colorize.gradle.application.pwa;
 
 import nl.colorize.gradle.application.AppHelper;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,22 +24,27 @@ import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class GeneratePwaTask extends DefaultTask {
+public abstract class GeneratePwaTask extends DefaultTask {
+
+    @Nested
+    public abstract Property<PwaExt> getExt();
+
+    @Inject
+    public abstract FileSystemOperations getFileSystemOperations();
 
     @TaskAction
     public void run() {
-        PwaExt config = getProject().getExtensions().getByType(PwaExt.class);
-        run(config);
+        run(getExt().get());
     }
 
     protected void run(PwaExt config) {
-        config.validate();
+        File inputDir = config.toProjectFile(config.getWebAppDir().get());
+        File outputDir = config.toOutputDir(config.getOutputDir().get());
 
-        File outputDir = config.getOutputDir(getProject());
         AppHelper.cleanDirectory(outputDir);
 
-        getProject().copy(copy -> {
-            copy.from(config.getWebAppDir());
+        getFileSystemOperations().copy(copy -> {
+            copy.from(inputDir);
             copy.into(outputDir);
             copy.exclude("build/**");
         });
@@ -62,27 +71,30 @@ public class GeneratePwaTask extends DefaultTask {
     }
 
     private void writeManifest(PwaExt config) throws IOException {
-        String manifest = Files.readString(new File(config.getManifest()).toPath(), UTF_8);
-        File outputFile = new File(config.getOutputDir(getProject()), "manifest.json");
+        String manifest = Files.readString(new File(config.getManifest().get()).toPath(), UTF_8);
+        File outputDir = config.toOutputDir(config.getOutputDir().get());
+        File outputFile = new File(outputDir, "manifest.json");
         Files.writeString(outputFile.toPath(), manifest, UTF_8);
     }
 
     private void writeServiceWorker(PwaExt config) throws IOException {
         String serviceWorker = prepareServiceWorker(config);
-        File outputFile = new File(config.getOutputDir(getProject()), "service-worker.js");
+        File outputDir = config.toOutputDir(config.getOutputDir().get());
+        File outputFile = new File(outputDir, "service-worker.js");
         Files.writeString(outputFile.toPath(), serviceWorker,  UTF_8);
     }
 
     private String prepareServiceWorker(PwaExt config) throws IOException {
-        if (config.getServiceWorker() != null) {
-            return Files.readString(new File(config.getServiceWorker()).toPath(), UTF_8);
+        if (!config.getServiceWorker().get().isEmpty()) {
+            File customServiceWorkerFile = config.toProjectFile(config.getServiceWorker().get());
+            return Files.readString(customServiceWorkerFile.toPath(), UTF_8);
         }
 
-        Path baseDir = config.getOutputDir(getProject()).toPath();
-        List<String> resourceFiles = getResourceFileList(baseDir);
+        File outputDir = config.toOutputDir(config.getOutputDir().get());
+        List<String> resourceFiles = getResourceFileList(outputDir.toPath());
 
         return AppHelper.rewriteTemplate("service-worker.js", Map.of(
-            "{{cacheName}}", config.getCacheName(),
+            "{{cacheName}}", config.getCacheName().get(),
             "{{resourceFiles}}", String.join("", resourceFiles)
         ));
     }

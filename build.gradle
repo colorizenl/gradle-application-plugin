@@ -6,14 +6,14 @@ buildscript {
     }
     
     dependencies {
-        classpath "com.gradle.publish:plugin-publish-plugin:2.0.0"
+        classpath "com.gradle.publish:plugin-publish-plugin:2.1.1"
     }
 }
 
 plugins {
-    id "io.freefair.lombok" version "9.2.0"
-    id "com.github.ben-manes.versions" version "0.53.0"
-    id "net.ltgt.errorprone" version "4.4.0"
+    id "io.freefair.lombok" version "9.5.0"
+    id "com.github.ben-manes.versions" version "0.54.0"
+    id "net.ltgt.errorprone" version "5.1.0"
 }
 
 apply plugin: "java-gradle-plugin"
@@ -21,7 +21,7 @@ apply plugin: "com.gradle.plugin-publish"
 apply plugin: "jacoco"
 
 group = "nl.colorize"
-version = "2026.1"
+version = "2026.2"
 compileJava.options.encoding = "UTF-8"
 
 java {
@@ -40,11 +40,12 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation files("lib/appbundler-1.0ea.jar")
-    implementation "org.jsoup:jsoup:1.22.1"
-    implementation "org.commonmark:commonmark:0.27.1"
-    testImplementation "org.junit.jupiter:junit-jupiter:6.0.1"
+    implementation "org.jsoup:jsoup:1.22.2"
+    implementation "org.commonmark:commonmark:0.29.0"
+    testImplementation "org.junit.jupiter:junit-jupiter:6.1.2"
+    testImplementation "com.tngtech.archunit:archunit-junit5:1.4.2"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-    errorprone "com.google.errorprone:error_prone_core:2.46.0"
+    errorprone "com.google.errorprone:error_prone_core:2.50.0"
 }
 
 jar {
@@ -85,9 +86,8 @@ tasks.withType(JavaCompile).configureEach {
     options.errorprone.allErrorsAsWarnings = true
     options.errorprone.disable("EffectivelyPrivate")
     options.errorprone.disable("FormatStringShouldUsePlaceholders")
-    options.errorprone.disable("InlineMeSuggester")
     options.errorprone.disable("JavaUtilDate")
-    options.errorprone.disable("JdkObsolete")
+    options.errorprone.disable("JavaxInjectOnAbstractMethod")
     options.errorprone.disable("StringCaseLocaleUsage")
 }
 
@@ -115,8 +115,11 @@ tasks.withType(Test).configureEach {
 task coverage(dependsOn: ["test", "jacocoTestReport"]) {
     doLast {
         def report = file("${buildDir}/reports/jacoco/test/html/index.html").text
-        def coverage = report =~ "tfoot.*?ctr2.*?>([\\d.]+%).*?tfoot"
+        def loc = (report =~ "tfoot.*?bar.*?>[\\d,]+ of ([\\d,]+).*?tfoot")[0][1].replace(",", "")
+        def coverage = (report =~ "tfoot.*?ctr2.*?>([\\d.]+)%.*?tfoot")[0][1]
         println "-" * 40
-        println "Test coverage: " + coverage[0][1]
+        println "Lines of code:    ${loc}"
+        println "Test coverage:    ${coverage}%"
+        file("${buildDir}/reports/coverage.yaml").text = "loc: ${loc}\ncoverage: ${coverage}\n"
     }
 }

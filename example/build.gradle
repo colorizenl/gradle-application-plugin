@@ -5,14 +5,14 @@ buildscript {
 
     dependencies {
         classpath files("../build/libs/application-plugin.jar")
-        classpath "org.jsoup:jsoup:1.22.1"
-        classpath "org.commonmark:commonmark:0.27.0"
+        classpath "org.jsoup:jsoup:1.22.2"
+        classpath "org.commonmark:commonmark:0.29.0"
     }
 }
 
 plugins {
-    id "com.github.ben-manes.versions" version "0.53.0"
-    id "com.gradleup.shadow" version "9.3.1"
+    id "com.github.ben-manes.versions" version "0.54.0"
+    id "com.gradleup.shadow" version "9.6.1"
 }
 
 apply plugin: "java"
@@ -43,16 +43,14 @@ macApplicationBundle {
 }
 
 msi {
-    inherit = true
-    mainJarName = "example.jar"
+    mainJarName = "example-shadow.jar"
     vendor = "Colorize"
     icon = "../resources/icon.ico"
     uuid = "b9112b5f-2340-4541-8883-6abd3c9c8780"
 }
 
 exe {
-    inherit = true
-    mainJarName = "example.jar"
+    mainJarName = "example-shadow.jar"
     icon = "${projectDir}/../resources/icon.ico"
     supportURL = "https://www.colorize.nl"
 }
@@ -78,6 +76,7 @@ staticSite {
 
 appIcon {
     original = "../resources/icon.png"
+    backgroundColor = "#ADADAD"
 }
 
 generateStaticSite.doLast {

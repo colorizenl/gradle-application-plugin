@@ -9,6 +9,7 @@ package nl.colorize.gradle.application.pwa;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -23,8 +24,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GeneratePwaTaskTest {
 
+    private File inputDir;
+    private File outputDir;
+    private PwaExt config;
+    private GeneratePwaTask task;
+
+    @BeforeEach
+    public void before(@TempDir File inputDir, @TempDir File outputDir) {
+        this.inputDir = inputDir;
+        this.outputDir = outputDir;
+
+        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
+        project.getLayout().getBuildDirectory().set(outputDir);
+
+        ApplicationPlugin plugin = new ApplicationPlugin();
+        plugin.apply(project);
+
+        config = project.getExtensions().getByType(PwaExt.class);
+        task = (GeneratePwaTask) project.getTasks().getByName("generatePWA");
+    }
+
     @Test
-    void rewriteHTML(@TempDir File tempDir) throws IOException {
+    void rewriteHTML() throws IOException {
         String html = """
             <html>
                 <head>
@@ -36,16 +57,12 @@ class GeneratePwaTaskTest {
             </html>
             """;
 
-        Files.writeString(new File(tempDir, "manifest.json").toPath(), "{}", UTF_8);
-        Files.writeString(new File(tempDir, "index.html").toPath(), html, UTF_8);
+        Files.writeString(new File(inputDir, "manifest.json").toPath(), "{}", UTF_8);
+        Files.writeString(new File(inputDir, "index.html").toPath(), html, UTF_8);
 
-        PwaExt config = new PwaExt();
-        config.setWebAppDir(tempDir.getAbsolutePath());
-        config.setManifest(new File(tempDir, "manifest.json").getAbsolutePath());
-        config.setCacheName("test");
-
-        Project project = initProject(tempDir);
-        GeneratePwaTask task = (GeneratePwaTask) project.getTasks().getByName("generatePWA");
+        config.getWebAppDir().set(inputDir.getAbsolutePath());
+        config.getManifest().set(new File(inputDir, "manifest.json").getAbsolutePath());
+        config.getCacheName().set("test");
         task.run(config);
 
         String expected = """
@@ -68,23 +85,19 @@ class GeneratePwaTaskTest {
             </html>
             """;
 
-        assertEquals(expected, readOutput(tempDir, "build/pwa/index.html"));
-        assertTrue(new File(tempDir, "build/pwa/manifest.json").exists());
-        assertTrue(new File(tempDir, "build/pwa/service-worker.js").exists());
+        assertEquals(expected, readOutput(outputDir, "pwa/index.html"));
+        assertTrue(new File(outputDir, "pwa/manifest.json").exists());
+        assertTrue(new File(outputDir, "pwa/service-worker.js").exists());
     }
 
     @Test
-    void generateServiceWorker(@TempDir File tempDir) throws IOException {
-        Files.writeString(new File(tempDir, "manifest.json").toPath(), "{}", UTF_8);
-        Files.writeString(new File(tempDir, "index.html").toPath(), "<head></head><body></body>", UTF_8);
+    void generateServiceWorker() throws IOException {
+        Files.writeString(new File(inputDir, "manifest.json").toPath(), "{}", UTF_8);
+        Files.writeString(new File(inputDir, "index.html").toPath(), "<head></head><body></body>", UTF_8);
 
-        PwaExt config = new PwaExt();
-        config.setWebAppDir(tempDir.getAbsolutePath());
-        config.setManifest(new File(tempDir, "manifest.json").getAbsolutePath());
-        config.setCacheName("test");
-
-        Project project = initProject(tempDir);
-        GeneratePwaTask task = (GeneratePwaTask) project.getTasks().getByName("generatePWA");
+        config.getWebAppDir().set(inputDir.getAbsolutePath());
+        config.getManifest().set(new File(inputDir, "manifest.json").getAbsolutePath());
+        config.getCacheName().set("test");
         task.run(config);
 
         String expected = """
@@ -118,40 +131,26 @@ class GeneratePwaTaskTest {
             });
             """;
 
-        assertEquals(expected, readOutput(tempDir, "build/pwa/service-worker.js"));
+        assertEquals(expected, readOutput(outputDir, "pwa/service-worker.js"));
     }
 
     @Test
-    void clearOutputDirectory(@TempDir File tempDir) throws IOException {
-        Files.writeString(new File(tempDir, "manifest.json").toPath(), "{}", UTF_8);
-        Files.writeString(new File(tempDir, "index.html").toPath(), "<html />", UTF_8);
-        Files.writeString(new File(tempDir, "new.txt").toPath(), "1234", UTF_8);
+    void clearOutputDirectory() throws IOException {
+        Files.writeString(new File(inputDir, "manifest.json").toPath(), "{}", UTF_8);
+        Files.writeString(new File(inputDir, "index.html").toPath(), "<html />", UTF_8);
+        Files.writeString(new File(inputDir, "new.txt").toPath(), "1234", UTF_8);
 
-        File buildDir = new File(tempDir, "build/pwa");
+        File buildDir = new File(outputDir, "pwa");
         buildDir.mkdirs();
         Files.writeString(new File(buildDir, "old.txt").toPath(), "1234", UTF_8);
 
-        PwaExt config = new PwaExt();
-        config.setWebAppDir(tempDir.getAbsolutePath());
-        config.setManifest(new File(tempDir, "manifest.json").getAbsolutePath());
-        config.setCacheName("test");
-
-        Project project = initProject(tempDir);
-        GeneratePwaTask task = (GeneratePwaTask) project.getTasks().getByName("generatePWA");
+        config.getWebAppDir().set(inputDir.getAbsolutePath());
+        config.getManifest().set(new File(inputDir, "manifest.json").getAbsolutePath());
+        config.getCacheName().set("test");
         task.run(config);
 
         assertTrue(new File(buildDir, "new.txt").exists());
         assertFalse(new File(buildDir, "old.txt").exists());
-    }
-
-    private Project initProject(File inputDir) {
-        Project project = ProjectBuilder.builder()
-            .withProjectDir(inputDir)
-            .build();
-
-        ApplicationPlugin plugin = new ApplicationPlugin();
-        plugin.apply(project);
-        return project;
     }
 
     private String readOutput(File tempDir, String name) throws IOException {

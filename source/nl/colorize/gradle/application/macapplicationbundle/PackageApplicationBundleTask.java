@@ -9,6 +9,8 @@ package nl.colorize.gradle.application.macapplicationbundle;
 import nl.colorize.gradle.application.AppHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
 
@@ -24,16 +26,15 @@ import java.util.List;
  * Gradle task to create a Mac application bundle using the {@code jpackage}
  * tool that is included with the JDK.
  */
-public class PackageApplicationBundleTask extends DefaultTask {
+public abstract class PackageApplicationBundleTask extends DefaultTask {
 
-    private ExecOperations execService;
-
-    private static final String ENTITLEMENTS = "entitlements-app.plist";
+    @Nested
+    public abstract Property<MacApplicationBundleExt> getExt();
 
     @Inject
-    public PackageApplicationBundleTask(ExecOperations execService) {
-        this.execService = execService;
-    }
+    public abstract ExecOperations getExecService();
+
+    private static final String ENTITLEMENTS = "entitlements-app.plist";
 
     @TaskAction
     public void run() {
@@ -44,11 +45,11 @@ public class PackageApplicationBundleTask extends DefaultTask {
     }
 
     protected void run(MacApplicationBundleExt config) {
-        File outputDir = config.getOutputDir(getProject());
+        File outputDir = config.toOutputDir(config.getOutputDir().get());
         AppHelper.cleanDirectory(outputDir);
 
-        execService.exec(exec -> exec.commandLine(getCommand("dmg", config)));
-        execService.exec(exec -> exec.commandLine(getCommand("pkg", config)));
+        getExecService().exec(exec -> exec.commandLine(getCommand("dmg", config)));
+        getExecService().exec(exec -> exec.commandLine(getCommand("pkg", config)));
     }
 
     protected List<String> getCommand(String packageType, MacApplicationBundleExt config) {
@@ -57,28 +58,28 @@ public class PackageApplicationBundleTask extends DefaultTask {
         command.add("--type");
         command.add(packageType);
         command.add("--app-version");
-        command.add(config.getBundleVersion());
+        command.add(config.getBundleVersion().get());
         command.add("--copyright");
-        command.add(config.getCopyright());
+        command.add(config.getCopyright().get());
         command.add("--description");
-        command.add(config.getDescription());
+        command.add(config.getDescription().get());
         command.add("--icon");
-        command.add(new File(config.getIcon()).getAbsolutePath());
+        command.add(config.toProjectFile(config.getIcon().get()).getAbsolutePath());
         command.add("--name");
-        command.add(config.getName());
+        command.add(config.getName().get());
         command.add("--dest");
-        command.add(config.getOutputDir(getProject()).getAbsolutePath());
+        command.add(config.toOutputDir(config.getOutputDir().get()).getAbsolutePath());
         command.add("--add-modules");
         command.add(getModules(config));
         command.add("--main-class");
-        command.add(config.getMainClassName());
+        command.add(config.getMainClassName().get());
         command.add("--main-jar");
-        command.add(config.getMainJarName());
+        command.add(config.getMainJarName().get());
         command.add("--input");
-        command.add(config.getContentDir());
-        if (!config.getArgs().isEmpty()) {
+        command.add(config.getContentDir().get());
+        if (!config.getArgs().get().isEmpty()) {
             command.add("--arguments");
-            command.add(String.join(" ", config.getArgs()));
+            command.add(String.join(" ", config.getArgs().get()));
         }
         command.add("--mac-sign");
         command.add("--mac-app-store");
@@ -91,8 +92,8 @@ public class PackageApplicationBundleTask extends DefaultTask {
 
     private String getModules(MacApplicationBundleExt config) {
         List<String> modules = new ArrayList<>();
-        modules.addAll(config.getModules());
-        modules.addAll(config.getAdditionalModules());
+        modules.addAll(config.getModules().get());
+        modules.addAll(config.getAdditionalModules().get());
         return String.join(",", modules);
     }
 

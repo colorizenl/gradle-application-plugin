@@ -9,6 +9,7 @@ package nl.colorize.gradle.application.icon;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -18,12 +19,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GenerateAppIconsTaskTest {
 
-    @Test
-    void generateBrowserIcons(@TempDir File inputDir, @TempDir File outputDir) {
-        AppIconExt config = new AppIconExt();
-        config.setOriginal(new File("resources/icon.png").getAbsolutePath());
+    private File outputDir;
+    private AppIconExt config;
+    private GenerateAppIconsTask task;
 
-        GenerateAppIconsTask task = prepare(inputDir, outputDir);
+    @BeforeEach
+    public void before(@TempDir File inputDir, @TempDir File outputDir) {
+        this.outputDir = outputDir;
+
+        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
+        project.getLayout().getBuildDirectory().set(outputDir);
+
+        ApplicationPlugin plugin = new ApplicationPlugin();
+        plugin.apply(project);
+
+        config = project.getExtensions().getByType(AppIconExt.class);
+        task = (GenerateAppIconsTask) project.getTasks().getByName("generateAppIcons");
+    }
+
+    @Test
+    void generateBrowserIcons() {
+        config.getOriginal().set(new File("resources/icon.png").getAbsolutePath());
         task.run(config);
 
         assertTrue(new File(outputDir, "icons").exists());
@@ -31,13 +47,5 @@ class GenerateAppIconsTaskTest {
         assertTrue(new File(outputDir, "icons/apple-favicon.png").exists());
         assertTrue(new File(outputDir, "icons/icon-512.png").exists());
         assertTrue(new File(outputDir, "icons/icon-192.png").exists());
-    }
-
-    private GenerateAppIconsTask prepare(File inputDir, File outputDir) {
-        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
-        project.setBuildDir(outputDir);
-        ApplicationPlugin plugin = new ApplicationPlugin();
-        plugin.apply(project);
-        return (GenerateAppIconsTask) project.getTasks().getByName("generateAppIcons");
     }
 }

@@ -9,6 +9,8 @@ package nl.colorize.gradle.application.macapplicationbundle;
 import nl.colorize.gradle.application.AppHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
 
@@ -31,17 +33,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * as part of Xcode. This tool, and therefore this Gradle task, is only
  * supported on Mac.
  */
-public class SignApplicationBundleTask extends DefaultTask {
+public abstract class SignApplicationBundleTask extends DefaultTask {
 
-    private ExecOperations execService;
+    @Nested
+    public abstract Property<MacApplicationBundleExt> getExt();
+
+    @Inject
+    public abstract ExecOperations getExecService();
 
     private static final String ENTITLEMENTS_APP = "entitlements-app.plist";
     private static final String ENTITLEMENTS_JRE = "entitlements-jre.plist";
-
-    @Inject
-    public SignApplicationBundleTask(ExecOperations execService) {
-        this.execService = execService;
-    }
 
     @TaskAction
     public void run() {
@@ -58,14 +59,14 @@ public class SignApplicationBundleTask extends DefaultTask {
     }
 
     protected void run(MacApplicationBundleExt config) throws IOException {
-        File appBundle = config.locateApplicationBundle(getProject());
-        File embeddedJDK = config.locateEmbeddedJDK(getProject());
+        File appBundle = config.locateApplicationBundle();
+        File embeddedJDK = config.locateEmbeddedJDK();
         File appEntitlements = generateEntitlements(ENTITLEMENTS_APP);
         File jreEntitlements = generateEntitlements(ENTITLEMENTS_JRE);
 
         checkEmbeddedJDK(embeddedJDK);
 
-        if (config.isSignNativeLibraries()) {
+        if (config.getSignNativeLibraries().get()) {
             extractNativeLibraries(config);
         }
 
@@ -83,7 +84,7 @@ public class SignApplicationBundleTask extends DefaultTask {
         List<String> command = List.of("xattr", dylib.getAbsolutePath());
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        execService.exec(exec -> {
+        getExecService().exec(exec -> {
             exec.commandLine(command);
             exec.setStandardOutput(output);
         });
@@ -94,8 +95,8 @@ public class SignApplicationBundleTask extends DefaultTask {
     }
 
     private boolean isNativeBinary(File file, MacApplicationBundleExt config) {
-        if (!config.getAdditionalBinaries().isEmpty()) {
-            File nativesDir = config.locateNativesDir(getProject());
+        if (!config.getAdditionalBinaries().get().isEmpty()) {
+            File nativesDir = config.locateNativesDir();
             if (file.getParentFile().equals(nativesDir)) {
                 return true;
             }
@@ -116,11 +117,12 @@ public class SignApplicationBundleTask extends DefaultTask {
             target.getAbsolutePath()
         );
 
-        execService.exec(exec -> exec.commandLine(command));
+        getExecService().exec(exec -> exec.commandLine(command));
     }
 
     private void createInstallerPackage(MacApplicationBundleExt config, File appFile) {
-        File pkgFile = new File(config.getOutputDir(getProject()), config.getName() + ".pkg");
+        File outputDir = config.toOutputDir(config.getOutputDir().get());
+        File pkgFile = new File(outputDir, config.getName().get() + ".pkg");
 
         List<String> command = List.of(
             "productbuild",
@@ -130,7 +132,7 @@ public class SignApplicationBundleTask extends DefaultTask {
             pkgFile.getAbsolutePath()
         );
 
-        execService.exec(exec -> exec.commandLine(command));
+        getExecService().exec(exec -> exec.commandLine(command));
     }
 
     private File generateEntitlements(String sourceFile) throws IOException {
@@ -145,10 +147,10 @@ public class SignApplicationBundleTask extends DefaultTask {
     }
 
     private void extractNativeLibraries(MacApplicationBundleExt config) throws IOException {
-        File appBundle = config.locateApplicationBundle(getProject());
-        File jarDir = new File(appBundle, "/Contents/Java");
-        File jarFile = new File(jarDir, config.getMainJarName());
-        File nativesDir = config.locateNativesDir(getProject());
+        File appBundle = config.locateApplicationBundle();
+        File jarDir = new File(appBundle, "Contents/Java");
+        File jarFile = new File(jarDir, config.getMainJarName().get());
+        File nativesDir = config.locateNativesDir();
 
         try (JarFile jar = new JarFile(jarFile)) {
             for (JarEntry entry : Collections.list(jar.entries())) {
@@ -170,6 +172,6 @@ public class SignApplicationBundleTask extends DefaultTask {
 
         boolean intel = name.contains("x64") || name.contains("x86");
         boolean arm = name.contains("arm64") || name.contains("aarch");
-        return config.getArchitectures().contains("x86_64") ? !arm : !intel;
+        return config.getArchitectures().get().contains("x86_64") ? !arm : !intel;
     }
 }

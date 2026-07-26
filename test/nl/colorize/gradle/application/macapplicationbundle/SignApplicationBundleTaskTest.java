@@ -9,6 +9,7 @@ package nl.colorize.gradle.application.macapplicationbundle;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,61 +20,55 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SignApplicationBundleTaskTest {
 
-    @Test
-    void signApplicationBundle(@TempDir File tempDir) throws IOException {
-        Project project = ProjectBuilder.builder()
-            .withProjectDir(tempDir)
-            .build();
+    private File outputDir;
+    private MacApplicationBundleExt config;
+    private CreateApplicationBundleTask createTask;
+    private SignApplicationBundleTask signTask;
+
+    @BeforeEach
+    public void before(@TempDir File inputDir, @TempDir File outputDir) {
+        this.outputDir = outputDir;
+
+        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
+        project.getLayout().getBuildDirectory().set(outputDir);
 
         ApplicationPlugin plugin = new ApplicationPlugin();
         plugin.apply(project);
 
-        MacApplicationBundleExt config = new MacApplicationBundleExt();
-        config.setName("Example");
-        config.setIdentifier("com.example");
-        config.setMainJarName("example.jar");
-        config.setMainClassName("HelloWorld.Main");
-        config.setContentDir("resources");
+        config = project.getExtensions().getByType(MacApplicationBundleExt.class);
+        createTask = (CreateApplicationBundleTask) project.getTasks().getByName("createApplicationBundle");
+        signTask = (SignApplicationBundleTask) project.getTasks().getByName("signApplicationBundle");
+    }
 
-        CreateApplicationBundleTask createTask = (CreateApplicationBundleTask) project.getTasks()
-            .getByName("createApplicationBundle");
+    @Test
+    void signApplicationBundle() throws IOException {
+        config.getName().set("Example");
+        config.getIdentifier().set("com.example");
+        config.getMainJarName().set("example.jar");
+        config.getMainClassName().set("HelloWorld.Main");
+        config.getContentDir().set(new File("resources").getAbsolutePath());
+        config.getIcon().set(new File("resources/icon.icns").getAbsolutePath());
         createTask.run(config);
-
-        SignApplicationBundleTask signTask = (SignApplicationBundleTask) project.getTasks()
-            .getByName("signApplicationBundle");
         signTask.run(config);
 
-        File bundle = new File(tempDir + "/build/mac/Example.app");
+        File bundle = new File(outputDir, "mac/Example.app");
 
         assertTrue(bundle.exists());
     }
 
     @Test
-    void extractNativeLibraries(@TempDir File tempDir) throws IOException {
-        Project project = ProjectBuilder.builder()
-            .withProjectDir(tempDir)
-            .build();
-
-        ApplicationPlugin plugin = new ApplicationPlugin();
-        plugin.apply(project);
-
-        MacApplicationBundleExt config = new MacApplicationBundleExt();
-        config.setName("Example");
-        config.setIdentifier("com.example");
-        config.setMainJarName("example.jar");
-        config.setMainClassName("HelloWorld.Main");
-        config.setContentDir("resources");
-        config.setSignNativeLibraries(true);
-
-        CreateApplicationBundleTask createTask = (CreateApplicationBundleTask) project.getTasks()
-            .getByName("createApplicationBundle");
+    void extractNativeLibraries() throws IOException {
+        config.getName().set("Example");
+        config.getIdentifier().set("com.example");
+        config.getMainJarName().set("example.jar");
+        config.getMainClassName().set("HelloWorld.Main");
+        config.getContentDir().set(new File("resources").getAbsolutePath());
+        config.getSignNativeLibraries().set(true);
+        config.getIcon().set(new File("resources/icon.icns").getAbsolutePath());
         createTask.run(config);
-
-        SignApplicationBundleTask signTask = (SignApplicationBundleTask) project.getTasks()
-            .getByName("signApplicationBundle");
         signTask.run(config);
 
-        File bundle = new File(tempDir + "/build/mac/Example.app");
+        File bundle = new File(outputDir, "mac/Example.app");
 
         assertTrue(bundle.exists());
         assertTrue(new File(bundle, "Contents/MacOS").exists());

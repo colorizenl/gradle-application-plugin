@@ -3,7 +3,7 @@ Gradle application plugin: Build applications for Windows, Mac, iOS, Android, an
 
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/nl.colorize.gradle.application)](
 https://plugins.gradle.org/plugin/nl.colorize.gradle.application)
-[![License](https://img.shields.io/badge/license-apache_2.0-purple)](
+[![License](https://img.shields.io/badge/license-apache_2.0-olive)](
 https://www.apache.org/licenses/LICENSE-2.0)
 
 Gradle plugin that builds native or hybrid applications for different platforms. It supports
@@ -44,7 +44,7 @@ use the plugin in your Gradle project by adding the following to `build.gradle`:
 
 ```groovy
 plugins {
-    id "nl.colorize.gradle.application" version "2025.4"
+    id "nl.colorize.gradle.application" version "2026.2"
 }
 ```
 
@@ -176,25 +176,23 @@ includes both the fat JAR and the Java runtime.
 The plugin can be configured using the `msi` section. The following configuration options
 are available:
 
-| Name            | Required | Description                                                     |
-|-----------------|----------|-----------------------------------------------------------------|
-| `inherit`       | no       | Inherits some configuration options from Mac app configuration. |
-| `mainJarName`   | depends  | File name of the main JAR file. Defaults to application JAR.    |
-| `mainClassName` | depends  | Fully qualified main class name.                                |
-| `options`       | no       | List of JVM command line options.                               |
-| `args`          | no       | List of command line arguments provided to the main class.      |
-| `name`          | depends  | Windows application name.                                       |
-| `version`       | depends  | Windows application version number.                             |
-| `vendor`        | yes      | Vendor display name.                                            |
-| `description`   | depends  | Short description text.                                         |
-| `copyright`     | depends  | Copyright statement text.                                       |
-| `icon`          | yes      | Location of `.ico` file.                                        |
-| `uuid`          | yes      | Windows update UUID, must remain the same across versions.      |
-| `outputDir`     | no       | Output directory path, defaults to `build/windows-msi`.         |
+| Name            | Required  | Description                                                  |
+|-----------------|-----------|--------------------------------------------------------------|
+| `mainJarName`   | inherited | File name of the main JAR file. Defaults to application JAR. |
+| `mainClassName` | inherited | Fully qualified main class name.                             |
+| `options`       | no        | List of JVM command line options.                            |
+| `args`          | no        | List of command line arguments provided to the main class.   |
+| `name`          | inherited | Windows application name.                                    |
+| `version`       | inherited | Windows application version number.                          |
+| `vendor`        | yes       | Vendor display name.                                         |
+| `description`   | inherited | Short description text.                                      |
+| `copyright`     | inherited | Copyright statement text.                                    |
+| `icon`          | yes       | Location of `.ico` file.                                     |
+| `uuid`          | yes       | Windows update UUID, must remain the same across versions.   |
+| `outputDir`     | no        | Output directory path, defaults to `build/windows-msi`.      |
 
-The `inherit` option can help to avoid duplicated configuration. When enabled, the `msi`
-configuration will use matching configuration options defined in the `macApplicationBundle`
-configuration.
+The `msi` configuration inherits matching configuration options defined in the
+`macApplicationBundle` configuration.
 
 Building a native Windows EXE 
 -----------------------------
@@ -207,21 +205,19 @@ platforms. The `.exe` file is created using [Launch4j](https://launch4j.sourcefo
 The **packageEXE** task will create both the `.exe` file and the Windows application. It can be
 configured using the `exe` section:
 
-| Name          | Required | Description                                                     |
-|---------------|----------|-----------------------------------------------------------------|
-| `inherit`     | no       | Inherits some configuration options from Mac app configuration. |
-| `mainJarName` | depends  | File name of the main JAR file. Defaults to application JAR.    |
-| `args`        | no       | List of command line arguments provided to the main class.      |
-| `name`        | depends  | Windows application name.                                       |
-| `version`     | depends  | Windows application version number.                             |
-| `icon`        | yes      | Location of `.ico` file.                                        |
-| `supportURL`  | yes      | Shown in case of application launch errors.                     |
-| `memory`      | no       | Maximum application memory in megabytes. Defaults to 2048 MB.   |
-| `exeFileName` | no       | File name for `.exe` file. Based on JAR file name if omitted.   |
+| Name          | Required  | Description                                                     |
+|---------------|-----------|-----------------------------------------------------------------|
+| `mainJarName` | inherited | File name of the main JAR file. Defaults to application JAR.    |
+| `args`        | no        | List of command line arguments provided to the main class.      |
+| `name`        | inherited | Windows application name.                                       |
+| `version`     | inherited | Windows application version number.                             |
+| `icon`        | yes       | Location of `.ico` file.                                        |
+| `supportURL`  | yes       | Shown in case of application launch errors.                     |
+| `memory`      | no        | Maximum application memory in megabytes. Defaults to 2048 MB.   |
+| `exeFileName` | no        | File name for `.exe` file. Based on JAR file name if omitted.   |
 
-The `inherit` option can help to avoid duplicated configuration. When enabled, the `exe`
-configuration will use matching configuration options defined in the `macApplicationBundle`
-configuration.
+The `exe` configuration inherits matching configuration options defined in the
+`macApplicationBundle` configuration.
 
 The Windows application contain an embedded Java runtime, which is located using the 
 `EMBEDDED_WINDOWS_JAVA` environment variable. This directory needs to contain a subdirectory
@@ -283,6 +279,8 @@ for common tasks, which can be called from JavaScript:
   the specified date and time. The `schedule` argument should be a date/time in ISO 8601 format,
   for example "2024-10-07 10:37:00". The date is interpreted against the user's current time zone.
 - `clrz.cancelNotification(id)` cancels a previously scheduled notification.
+- `clrz.fetchNotifications(callback)` retrieves list of all currently pending notifications.
+  The callback function will receive an array of notification IDs.
 
 Building PWAs
 -------------
@@ -353,10 +351,11 @@ as input. This task will generate icons for the following platforms:
 The task can be configured using the `appIcon` configuration section. The following options
 are available:
 
-| Name            | Required | Description                                                   |
-|-----------------|----------|---------------------------------------------------------------|
-| `original`      | yes      | PNG file that is used as the base image for generating icons. |
-| `outputDir`     | no       | Output directory, defaults to `build/icons`.                  |
+| Name              | Required | Description                                                    |
+|-------------------|----------|----------------------------------------------------------------|
+| `original`        | yes      | PNG file that is used as the base image for generating icons.  |
+| `backgroundColor` | no       | Background color to use for opaque icons, defaults to #000000. |
+| `outputDir`       | no       | Output directory, defaults to `build/icons`.                   |
 
 Instructions for building the plugin itself
 -------------------------------------------

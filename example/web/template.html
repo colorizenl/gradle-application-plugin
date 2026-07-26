@@ -34,6 +34,12 @@
         <form onsubmit="event.preventDefault()">
             <button onclick="window.scheduleNotification()">Schedule notification</button>
             <button onclick="window.cancelNotification()">Cancel</button>
+            <button onclick="window.checkNotifications()">Show scheduled</button>
         </form>
+
+    <div id="scheduledNotifications">
+        Scheduled notifications:
+        <ul></ul>
+    </div>
     </body>
 </html>

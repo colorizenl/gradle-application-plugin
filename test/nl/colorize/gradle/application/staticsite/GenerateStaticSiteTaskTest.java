@@ -9,6 +9,7 @@ package nl.colorize.gradle.application.staticsite;
 import nl.colorize.gradle.application.ApplicationPlugin;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,15 +25,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GenerateStaticSiteTaskTest {
 
+    private File inputDir;
+    private File outputDir;
+    private StaticSiteExt config;
+    private GenerateStaticSiteTask task;
+
+    @BeforeEach
+    public void before(@TempDir File inputDir, @TempDir File outputDir) {
+        this.inputDir = inputDir;
+        this.outputDir = outputDir;
+
+        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
+        project.getLayout().getBuildDirectory().set(outputDir);
+
+        ApplicationPlugin plugin = new ApplicationPlugin();
+        plugin.apply(project);
+
+        config = project.getExtensions().getByType(StaticSiteExt.class);
+        task = (GenerateStaticSiteTask) project.getTasks().getByName("generateStaticSite");
+    }
+
     @Test
-    void renderTemplateHTML(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void renderTemplateHTML() throws IOException {
         createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
         task.run(config);
 
         String html = """
@@ -48,14 +66,11 @@ class GenerateStaticSiteTaskTest {
     }
 
     @Test
-    void templateWithClosingTag(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void templateWithClosingTag() throws IOException {
         createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
         task.run(config);
 
         String html = """
@@ -71,15 +86,12 @@ class GenerateStaticSiteTaskTest {
     }
 
     @Test
-    void renderTemplateInSameLocation(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void renderTemplateInSameLocation() throws IOException {
         createFile(inputDir, "template.html",
             "<html><h1>1</h1><clrz-content></clrz-content><h2>2</h2></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
         task.run(config);
 
         String html = """
@@ -97,16 +109,13 @@ class GenerateStaticSiteTaskTest {
     }
 
     @Test
-    void retainDirectoryStructure(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void retainDirectoryStructure() throws IOException {
         createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
         new File(inputDir, "b").mkdir();
         createFile(inputDir, "b/b.html", "<div>Hello world</div>");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
         task.run(config);
 
         assertTrue(doesFileExist(outputDir, "a.html"));
@@ -116,14 +125,11 @@ class GenerateStaticSiteTaskTest {
     }
 
     @Test
-    void renderMarkdownInTemplate(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void renderMarkdownInTemplate() throws IOException {
         createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.md", "# Test\n\ntest");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
         task.run(config);
 
         String html = """
@@ -139,32 +145,26 @@ class GenerateStaticSiteTaskTest {
     }
 
     @Test
-    void copyNonArticleFiles(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void copyNonArticleFiles() throws IOException {
         createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
         createFile(inputDir, "b.txt", "test");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
         task.run(config);
 
         assertTrue(doesFileExist(outputDir, "b.txt"));
     }
 
     @Test
-    void renderTemplateRecursively(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void renderTemplateRecursively() throws IOException {
         createFile(inputDir, "template.html", "<html><clrz-content></clrz-content></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
         new File(inputDir, "b").mkdir();
         createFile(inputDir, "b/template.html", "<h1>Test</h1><clrz-content></clrz-content>");
         createFile(inputDir, "b/b.html", "<em>nested</em>");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
         task.run(config);
 
         String html = """
@@ -180,25 +180,13 @@ class GenerateStaticSiteTaskTest {
     }
 
     @Test
-    void selfClosingTagIsNoLongerAllowed(@TempDir File inputDir, @TempDir File outputDir) throws IOException {
+    void selfClosingTagIsNoLongerAllowed() throws IOException {
         createFile(inputDir, "template.html", "<html><clrz-content /></html>");
         createFile(inputDir, "a.html", "<div>Hello world</div>");
 
-        StaticSiteExt config = new StaticSiteExt();
-        config.setContentDir(".");
-
-        GenerateStaticSiteTask task = prepare(inputDir, outputDir);
+        config.getContentDir().set(".");
 
         assertThrows(IllegalStateException.class, () -> task.run(config));
-    }
-
-    private GenerateStaticSiteTask prepare(File inputDir, File outputDir) {
-        Project project = ProjectBuilder.builder().withProjectDir(inputDir).build();
-        project.setBuildDir(outputDir);
-        ApplicationPlugin plugin = new ApplicationPlugin();
-        plugin.apply(project);
-
-        return (GenerateStaticSiteTask) project.getTasks().getByName("generateStaticSite");
     }
 
     private void createFile(File inputDir, String filePath, String content) throws IOException {

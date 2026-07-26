@@ -49,6 +49,8 @@ class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, UNUs
             scheduleNotification(body)
         } else if message.name == "cancelNotification" {
             cancelNotification(body)
+        } else if message.name == "fetchNotifications" {
+            fetchNotifications(body)
         }
     }
 
@@ -113,5 +115,57 @@ class ScriptBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, UNUs
         let id: String = body["id"] as! String
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.removePendingNotificationRequests(withIdentifiers: [id])
+    }
+
+    func fetchNotifications(_ body: NSDictionary) {
+        let callbackId: String = body["callbackId"] as! String
+        let notificationCenter = UNUserNotificationCenter.current()
+
+        notificationCenter.getPendingNotificationRequests(completionHandler: { requests in
+            var js: String = "window.clrz.notificationIds = [];\n"
+            for request in requests {
+                js += "window.clrz.notificationIds.push('\(request.identifier)')\n"
+            }
+            js += "window.clrz.webkitCallbacks[\(callbackId)](window.clrz.notificationIds)\n"
+            self.webView.evaluateJavaScript(js)
+        })
+    }
+    
+    static func generateJavaScript() -> String {
+        return """
+            window.clrz = {
+                webkitCallbacks: [],
+                notificationIds: [],
+                openNativeBrowser: function(url) {
+                    window.webkit.messageHandlers.openNativeBrowser.postMessage({url});
+                },
+                loadPreferences: function() {
+                    window.webkit.messageHandlers.loadPreferences.postMessage({});
+                },
+                savePreferences: function(name, value) {
+                    window.webkit.messageHandlers.savePreferences.postMessage({name, value});
+                },
+                requestNotifications: function() {
+                    window.webkit.messageHandlers.requestNotifications.postMessage({});
+                },
+                scheduleNotification: function(id, title, preview, schedule) {
+                    const message = {id, title, preview, schedule};
+                    window.webkit.messageHandlers.scheduleNotification.postMessage(message);
+                },
+                cancelNotification: function(id) {
+                    window.webkit.messageHandlers.cancelNotification.postMessage({id});
+                },
+                fetchNotifications: function(callback) {
+                    // Callbacks have to work like this due to the archaic
+                    // interoperability between Swift and JavaScript. This
+                    // can theoretically cause memory issues, but only if
+                    // you use a gazillion callbacks. For normal applications
+                    // this should be fine.
+                    window.clrz.webkitCallbacks.push(callback);
+                    const callbackId = "" + (window.clrz.webkitCallbacks.length - 1);
+                    window.webkit.messageHandlers.fetchNotifications.postMessage({callbackId});
+                }
+            };
+        """
     }
 }

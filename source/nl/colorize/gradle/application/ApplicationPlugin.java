@@ -16,15 +16,15 @@ import nl.colorize.gradle.application.pwa.GeneratePwaTask;
 import nl.colorize.gradle.application.pwa.PwaExt;
 import nl.colorize.gradle.application.staticsite.GenerateStaticSiteTask;
 import nl.colorize.gradle.application.staticsite.StaticSiteExt;
-import nl.colorize.gradle.application.windowsexe.PackageWindowsStandaloneTask;
-import nl.colorize.gradle.application.windowsexe.WindowsStandaloneExt;
-import nl.colorize.gradle.application.windowsmsi.PackageMSITask;
-import nl.colorize.gradle.application.windowsmsi.WindowsInstallerExt;
+import nl.colorize.gradle.application.windows.PackageMSITask;
+import nl.colorize.gradle.application.windows.PackageWindowsExeTask;
+import nl.colorize.gradle.application.windows.WindowsInstallerExt;
+import nl.colorize.gradle.application.windows.WindowsStandaloneExt;
 import nl.colorize.gradle.application.xcode.XcodeGenExt;
 import nl.colorize.gradle.application.xcode.XcodeGenTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.tasks.TaskContainer;
 
 /**
@@ -44,69 +44,93 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void configureMacApplicationBundle(Project project) {
-        ExtensionContainer ext = project.getExtensions();
-        ext.create("macApplicationBundle", MacApplicationBundleExt.class);
+        var ext = createExt(project, "macApplicationBundle", MacApplicationBundleExt.class);
 
         TaskContainer tasks = project.getTasks();
-        tasks.create("createApplicationBundle", CreateApplicationBundleTask.class);
-        tasks.create("signApplicationBundle", SignApplicationBundleTask.class);
-        tasks.create("packageApplicationBundle", PackageApplicationBundleTask.class);
+        tasks.register("createApplicationBundle", CreateApplicationBundleTask.class,
+            task -> task.getExt().set(ext));
+        tasks.register("signApplicationBundle", SignApplicationBundleTask.class,
+            task -> task.getExt().set(ext));
+        tasks.register("packageApplicationBundle", PackageApplicationBundleTask.class,
+            task -> task.getExt().set(ext));
 
         tasks.getByName("signApplicationBundle").dependsOn(tasks.getByName("createApplicationBundle"));
         tasks.getByName("createApplicationBundle").dependsOn("jar");
         tasks.getByName("packageApplicationBundle").dependsOn("jar");
-        if (AppHelper.hasShadowJarPlugin(project)) {
+        if (hasShadowJarPlugin(project)) {
             tasks.getByName("createApplicationBundle").dependsOn("shadowJar");
             tasks.getByName("packageApplicationBundle").dependsOn("shadowJar");
         }
     }
 
     private void configureWindows(Project project) {
-        ExtensionContainer ext = project.getExtensions();
-        ext.create("msi", WindowsInstallerExt.class);
-        ext.create("exe", WindowsStandaloneExt.class);
+        WindowsInstallerExt msiExt = createExt(project, "msi", WindowsInstallerExt.class);
+        WindowsStandaloneExt exeExt = createExt(project, "exe", WindowsStandaloneExt.class);
 
         TaskContainer tasks = project.getTasks();
-        tasks.create("packageMSI", PackageMSITask.class);
-        tasks.create("packageEXE", PackageWindowsStandaloneTask.class);
+        tasks.register("packageMSI", PackageMSITask.class, task -> task.getExt().set(msiExt));
+        tasks.register("packageEXE", PackageWindowsExeTask.class, task -> task.getExt().set(exeExt));
 
         tasks.getByName("packageMSI").dependsOn("jar");
         tasks.getByName("packageEXE").dependsOn("jar");
-        if (AppHelper.hasShadowJarPlugin(project)) {
+        if (hasShadowJarPlugin(project)) {
             tasks.getByName("packageMSI").dependsOn("shadowJar");
             tasks.getByName("packageEXE").dependsOn("shadowJar");
         }
     }
 
     private void configureXcodeGen(Project project) {
-        ExtensionContainer ext = project.getExtensions();
-        ext.create("xcode", XcodeGenExt.class);
+        XcodeGenExt ext = createExt(project, "xcode", XcodeGenExt.class);
 
-        TaskContainer tasks = project.getTasks();
-        tasks.create("xcodeGen", XcodeGenTask.class);
+        project.getTasks().register(
+            "xcodeGen",
+            XcodeGenTask.class,
+            task -> task.getExt().set(ext)
+        );
     }
 
     private void configurePWA(Project project) {
-        ExtensionContainer ext = project.getExtensions();
-        ext.create("pwa", PwaExt.class);
+        PwaExt ext = createExt(project, "pwa", PwaExt.class);
 
-        TaskContainer tasks = project.getTasks();
-        tasks.create("generatePWA", GeneratePwaTask.class);
+        project.getTasks().register(
+            "generatePWA",
+            GeneratePwaTask.class,
+            task -> task.getExt().set(ext)
+        );
     }
 
     private void configureStaticSite(Project project) {
-        ExtensionContainer ext = project.getExtensions();
-        ext.create("staticSite", StaticSiteExt.class);
+        StaticSiteExt ext = createExt(project, "staticSite", StaticSiteExt.class);
 
-        TaskContainer tasks = project.getTasks();
-        tasks.create("generateStaticSite", GenerateStaticSiteTask.class);
+        project.getTasks().register(
+            "generateStaticSite",
+            GenerateStaticSiteTask.class,
+            task -> task.getExt().set(ext)
+        );
     }
 
     private void configureAppIcon(Project project) {
-        ExtensionContainer ext = project.getExtensions();
-        ext.create("appIcon", AppIconExt.class);
+        AppIconExt ext = createExt(project, "appIcon", AppIconExt.class);
 
-        TaskContainer tasks = project.getTasks();
-        tasks.create("generateAppIcons", GenerateAppIconsTask.class);
+        project.getTasks().register(
+            "generateAppIcons",
+            GenerateAppIconsTask.class,
+            task -> task.getExt().set(ext)
+        );
+    }
+
+    private <T extends ApplicationExt> T createExt(Project project, String name, Class<T> type) {
+        T ext = project.getExtensions().create(name, type);
+        ext.init(project);
+        return ext;
+    }
+
+    private boolean hasShadowJarPlugin(Project project) {
+        try {
+            project.getTasks().getByName("shadowJar");
+            return true;
+        } catch (UnknownTaskException e) {
+            return false;
+        }
     }
 }

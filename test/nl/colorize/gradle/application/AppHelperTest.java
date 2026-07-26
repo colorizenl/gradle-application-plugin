@@ -56,21 +56,6 @@ class AppHelperTest {
     }
 
     @Test
-    void getOutputDir(@TempDir File tempDir) {
-        Project project = ProjectBuilder.builder()
-            .withProjectDir(tempDir)
-            .build();
-
-        ApplicationPlugin plugin = new ApplicationPlugin();
-        plugin.apply(project);
-
-        File outputDir = AppHelper.getOutputDir(project, "test");
-
-        assertEquals("test", outputDir.getName());
-        assertEquals("build", outputDir.getParentFile().getName());
-    }
-
-    @Test
     void walk(@TempDir Path tempDir) throws IOException {
         Files.writeString(tempDir.resolve("a.txt"), "a", UTF_8);
         Files.writeString(tempDir.resolve("b.txt"), "b", UTF_8);
