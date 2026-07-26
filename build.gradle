@@ -66,7 +66,7 @@ jar {
 
 test {
     if (project.hasProperty("headless")) {
-        exclude "**/macapplicationbundle/**", "**/windowsexe/**"
+        exclude "**/macapplicationbundle/**", "**/windows/PackageWindowsExe*"
     }
 }
 
