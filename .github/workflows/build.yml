@@ -6,7 +6,7 @@ jobs:
     container: colorizenl/colorize-ci
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Unit tests
@@ -20,6 +20,9 @@ jobs:
           name: test-report
           path: build/reports
           retention-days: 3
+      - name: SpotBugs quality check
+        run: gradle spotbugsMain
+        continue-on-error: true
       - name: Copyright header check
         run: copyright_check.py --exclude appbundler
         
