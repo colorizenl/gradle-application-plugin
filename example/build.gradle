@@ -5,13 +5,13 @@ buildscript {
 
     dependencies {
         classpath files("../build/libs/application-plugin.jar")
-        classpath "org.jsoup:jsoup:1.22.2"
-        classpath "org.commonmark:commonmark:0.29.0"
+        classpath "org.jsoup:jsoup:1.23.2"
+        classpath "org.commonmark:commonmark:0.30.0"
     }
 }
 
 plugins {
-    id "com.github.ben-manes.versions" version "0.54.0"
+    id "io.github.ben-manes.versions" version "0.64.0"
     id "com.gradleup.shadow" version "9.6.1"
 }
 

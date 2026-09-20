@@ -53,5 +53,9 @@ public class ExampleApp extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(logo, getWidth() / 2 - 100, getHeight() / 2 - 100, 200, 200, null);
+
+        g.setColor(Color.BLACK);
+        g.drawString("HOME location: " + System.getenv("HOME"), 20, 100);
+        g.drawString("user.home location: " + System.getProperty("user.home"), 20, 120);
     }
 }

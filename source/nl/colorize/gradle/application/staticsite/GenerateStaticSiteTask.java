@@ -102,7 +102,7 @@ public abstract class GenerateStaticSiteTask extends DefaultTask {
         File outputFile = outputDir.toPath().resolve(relativePath).toFile();
 
         if (file.isDirectory()) {
-            outputFile.mkdir();
+            AppHelper.mkdir(outputFile);
         } else if (file.getName().endsWith(".html")) {
             String content = Files.readString(file.toPath(), UTF_8);
             processContentFile(content, file, outputFile, config);

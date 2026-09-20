@@ -43,13 +43,13 @@ public abstract class PackageWindowsExeTask extends DefaultTask {
     protected void run(WindowsStandaloneExt config) {
         File xmlFile = generateLaunch4jConfig(config);
         getExecService().exec(exec -> runLaunch4j(exec, xmlFile));
-        xmlFile.delete();
+        AppHelper.delete(xmlFile);
         packageWindowsApplication(config);
 
         // Clean up the generated EXE file since it's already
         // been packaged.
         File exeFile = config.locateExeFile();
-        exeFile.delete();
+        AppHelper.delete(exeFile);
     }
 
     protected File generateLaunch4jConfig(WindowsStandaloneExt config) {
@@ -109,12 +109,17 @@ public abstract class PackageWindowsExeTask extends DefaultTask {
 
             try (Stream<Path> stream = Files.walk(runtime.toPath())) {
                 stream.filter(path -> !Files.isDirectory(path))
-                    .filter(path -> !path.getFileName().toString().equals(".DS_Store"))
+                    .filter(path -> !shouldSkipFile(path))
                     .forEach(path -> addZipEntry(zip, runtime, path));
             }
         } catch (IOException e) {
             throw new RuntimeException("Error creating ZIP file", e);
         }
+    }
+
+    private boolean shouldSkipFile(Path file) {
+        Path fileName = file.getFileName();
+        return fileName == null || fileName.toString().equals(".DS_Store");
     }
 
     private void addZipEntry(ZipOutputStream zip, File runtime, Path file) {

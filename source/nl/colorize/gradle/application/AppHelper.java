@@ -89,6 +89,12 @@ public class AppHelper {
         return dir;
     }
 
+    public static void delete(File file) {
+        if (file.exists() && !file.delete()) {
+            throw new IllegalStateException("Failed to delete file " + file.getAbsolutePath());
+        }
+    }
+
     public static String loadResourceFile(String path) {
         try (InputStream stream = AppHelper.class.getClassLoader().getResourceAsStream(path)) {
             if (stream == null) {

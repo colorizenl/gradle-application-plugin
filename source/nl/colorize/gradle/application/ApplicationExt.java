@@ -41,21 +41,15 @@ public interface ApplicationExt {
 
     default File toOutputFile(String path) {
         File buildDir = getBuildDirRef().get();
-        if (!buildDir.exists()) {
-            buildDir.mkdir();
-        }
+        AppHelper.mkdir(buildDir);
         return new File(buildDir, path);
     }
 
     default File toOutputDir(String path) {
         File buildDir = getBuildDirRef().get();
-        if (!buildDir.exists()) {
-            buildDir.mkdir();
-        }
+        AppHelper.mkdir(buildDir);
         File outputDir = new File(buildDir, path);
-        if (!outputDir.exists()) {
-            outputDir.mkdir();
-        }
+        AppHelper.mkdir(outputDir);;
         return outputDir;
     }
 

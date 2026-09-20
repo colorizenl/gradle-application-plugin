@@ -372,6 +372,7 @@ The following Gradle build tasks are available:
 - `gradle assemble` creates the JAR file for distribution
 - `gradle test` runs all unit tests
 - `gradle coverage` runs all unit tests and reports on test coverage
+- `gradle spotbugsMain` runs the [SpotBugs](https://spotbugs.github.io) quality check.
 - `gradle publishPlugins` publishes the plugin to the Gradle plugin portal (requires account)
 
 Some tests can only run on Windows or Mac. Add `-Pheadless=true` when running in a headless

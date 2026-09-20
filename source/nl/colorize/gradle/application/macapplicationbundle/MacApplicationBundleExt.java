@@ -80,8 +80,13 @@ public interface MacApplicationBundleExt extends ApplicationExt {
 
     default File locateEmbeddedJDK(File appBundleDir) {
         File pluginsDir = new File(appBundleDir, "Contents/PlugIns");
+        File[] files = pluginsDir.listFiles(File::isDirectory);
 
-        for (File pluginDir : pluginsDir.listFiles(File::isDirectory)) {
+        if (files == null) {
+            throw new RuntimeException("Failed to list " + pluginsDir.getAbsolutePath());
+        }
+
+        for (File pluginDir : files) {
             String plugin = pluginDir.getName();
             if (plugin.startsWith("jdk-") || plugin.startsWith("temurin-") || plugin.endsWith(".jdk")) {
                 return pluginDir;
