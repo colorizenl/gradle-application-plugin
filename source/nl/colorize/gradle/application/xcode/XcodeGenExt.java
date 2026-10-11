@@ -31,7 +31,7 @@ public interface XcodeGenExt extends ApplicationExt {
         getBuildDirRef().set(project.getLayout().getBuildDirectory().getAsFile().get());
         getIconBackgroundColor().convention("#000000");
         getOutputDir().convention("xcode");
-        getDeploymentTarget().convention("14.0");
+        getDeploymentTarget().convention("17.0");
         getLaunchScreenColor().convention("#000000");
         getXcodeGenPath().convention("/usr/local/bin/xcodegen");
     }
