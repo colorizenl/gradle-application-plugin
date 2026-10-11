@@ -63,7 +63,7 @@ class XcodeGenTaskTest {
               example:
                 type: application
                 platform: iOS
-                deploymentTarget: "14.0"
+                deploymentTarget: "17.0"
                 sources:
                   - example
                   - path: HybridResources
