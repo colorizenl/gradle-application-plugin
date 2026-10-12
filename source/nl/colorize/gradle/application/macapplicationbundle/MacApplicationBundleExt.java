@@ -15,6 +15,7 @@ import org.gradle.api.tasks.Input;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +45,17 @@ public interface MacApplicationBundleExt extends ApplicationExt {
     @Input ListProperty<String> getAdditionalBinaries();
     @Input Property<String> getOutputDir();
 
+    public static final String SIGN_APP_ENV = "MAC_SIGN_APP_IDENTITY";
+    public static final String SIGN_INSTALLER_ENV = "MAC_SIGN_INSTALLER_IDENTITY";
+    public static final List<String> DEFAULT_MODULES = List.of(
+        "java.base",
+        "java.desktop",
+        "java.logging",
+        "java.net.http",
+        "java.sql",
+        "jdk.crypto.ec"
+    );
+
     @Override
     default void init(Project project) {
         getProjectDirRef().set(project.getProjectDir());
@@ -62,7 +74,7 @@ public interface MacApplicationBundleExt extends ApplicationExt {
         getOptions().convention(List.of("-Xmx2g"));
         getArgs().convention(Collections.emptyList());
         getJdkPath().convention(Optional.ofNullable(System.getenv("EMBEDDED_JAVA_HOME"))
-            .orElse(AppHelper.getEnvironmentVariable("JAVA_HOME")));
+            .orElseGet(() -> AppHelper.getEnvironmentVariable("JAVA_HOME")));
         getSignNativeLibraries().convention(false);
         getAdditionalBinaries().convention(Collections.emptyList());
         getOutputDir().convention("mac");
@@ -86,29 +98,20 @@ public interface MacApplicationBundleExt extends ApplicationExt {
             throw new RuntimeException("Failed to list " + pluginsDir.getAbsolutePath());
         }
 
-        for (File pluginDir : files) {
-            String plugin = pluginDir.getName();
-            if (plugin.startsWith("jdk-") || plugin.startsWith("temurin-") || plugin.endsWith(".jdk")) {
-                return pluginDir;
-            }
-        }
+        return Arrays.stream(files)
+            .filter(this::isEmbeddedJDK)
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Cannot locate embedded JDK: " + appBundleDir));
+    }
 
-        throw new RuntimeException("Cannot locate embedded JDK: " + appBundleDir.getAbsolutePath());
+    private boolean isEmbeddedJDK(File pluginDir) {
+        return pluginDir.getName().startsWith("jdk-") ||
+            pluginDir.getName().startsWith("temurin-") ||
+            pluginDir.getName().endsWith(".jdk");
     }
 
     default File locateNativesDir() {
         File appBundleDir = locateApplicationBundle();
         return new File(appBundleDir, "Contents/MacOS");
     }
-
-    public static final String SIGN_APP_ENV = "MAC_SIGN_APP_IDENTITY";
-    public static final String SIGN_INSTALLER_ENV = "MAC_SIGN_INSTALLER_IDENTITY";
-    public static final List<String> DEFAULT_MODULES = List.of(
-        "java.base",
-        "java.desktop",
-        "java.logging",
-        "java.net.http",
-        "java.sql",
-        "jdk.crypto.ec"
-    );
 }

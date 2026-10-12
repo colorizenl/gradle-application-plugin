@@ -71,7 +71,8 @@ public abstract class GeneratePwaTask extends DefaultTask {
     }
 
     private void writeManifest(PwaExt config) throws IOException {
-        String manifest = Files.readString(new File(config.getManifest().get()).toPath(), UTF_8);
+        File manifestFile = config.toProjectFile(config.getManifest().get());
+        String manifest = Files.readString(manifestFile.toPath(), UTF_8);
         File outputDir = config.toOutputDir(config.getOutputDir().get());
         File outputFile = new File(outputDir, "manifest.json");
         Files.writeString(outputFile.toPath(), manifest, UTF_8);

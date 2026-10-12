@@ -76,7 +76,7 @@ public abstract class PackageApplicationBundleTask extends DefaultTask {
         command.add("--main-jar");
         command.add(config.getMainJarName().get());
         command.add("--input");
-        command.add(config.getContentDir().get());
+        command.add(getContentDir(config).getAbsolutePath());
         if (!config.getArgs().get().isEmpty()) {
             command.add("--arguments");
             command.add(String.join(" ", config.getArgs().get()));
@@ -88,6 +88,13 @@ public abstract class PackageApplicationBundleTask extends DefaultTask {
         command.add("--mac-signing-key-user-name");
         command.add(AppHelper.getEnvironmentVariable(MacApplicationBundleExt.SIGN_APP_ENV));
         return command;
+    }
+
+    private File getContentDir(MacApplicationBundleExt config) {
+        if (config.getContentDir().get().isEmpty()) {
+            return config.getProjectDirRef().get();
+        }
+        return config.toProjectFile(config.getContentDir().get());
     }
 
     private String getModules(MacApplicationBundleExt config) {
